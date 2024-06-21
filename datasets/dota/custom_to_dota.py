@@ -3,11 +3,11 @@ import os
 import os.path as osp 
 import json 
 import numpy as np
-from utils import polygon_to_obb_dota_format
-from scipy.spatial import ConvexHull
+from datasets.dota.polygon2dota import get_obb_coord
+from shapely.geometry import Polygon
 
-input_dir = '/HDD/datasets/projects/rich/24.06.12/split_dataset'
-output_dir = '/HDD/datasets/projects/rich/24.06.12/split_dataset_dota'
+input_dir = '/HDD/datasets/projects/rich/split_dataset'
+output_dir = '/HDD/datasets/projects/rich/split_dataset_dota'
 
 if not osp.exists(output_dir):
     os.mkdir(output_dir)
@@ -15,7 +15,6 @@ if not osp.exists(output_dir):
 folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
 
 for folder in folders:
-
     _output_dir = osp.join(output_dir, folder, 'labelTxt')
     if not osp.exists(_output_dir):
         os.makedirs(_output_dir)
@@ -31,7 +30,7 @@ for folder in folders:
             
         if len(anns) != 0:
             for ann in anns:
-                points = polygon_to_obb_dota_format(np.array(ann['points']))
+                points, _ = get_obb_coord(Polygon(np.array(ann['points'])))
                 data = ''
                 for point in points:
                     data += f'{str(int(point[0]))} {str(int(point[1]))} '

@@ -98,6 +98,7 @@ class DOTA:
         ax.add_collection(p)
         
         plt.show()
+        plt.savefig('label.png')
         
     def loadImgs(self, imgids=[], ext='bmp'):
         """
