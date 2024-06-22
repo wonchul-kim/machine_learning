@@ -3,11 +3,11 @@ import os
 import os.path as osp 
 import json 
 import numpy as np
-from datasets.dota.polygon2dota import get_obb_coord
+from polygon2dota import get_obb_coord
 from shapely.geometry import Polygon
 
-input_dir = '/HDD/datasets/projects/rich/split_dataset'
-output_dir = '/HDD/datasets/projects/rich/split_dataset_dota'
+input_dir = '/HDD/datasets/projects/rich/24.06.19/split_dataset'
+output_dir = '/HDD/datasets/projects/rich/24.06.19/split_dataset_dota'
 
 if not osp.exists(output_dir):
     os.mkdir(output_dir)
