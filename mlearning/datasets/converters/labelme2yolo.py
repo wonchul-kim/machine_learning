@@ -91,7 +91,7 @@ for folder in folders:
 
 txt = open(osp.join(output_dir, 'classes.txt'), 'w')
 for key, val in class2idx.items():
-    txt.write(f'{key}: {val}')
+    txt.write(f'{key}: {val}\n')
 txt.close()
         
         
