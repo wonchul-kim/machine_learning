@@ -14,8 +14,8 @@
 #### annotation format
 
 ```txt
-x1, y1, x2, y2, x3, y3, x4, y4, category, difficult
-x1, y1, x2, y2, x3, y3, x4, y4, category, difficult
+x1, y1, x2, y2, x3, y3, x4, y4, category-name, difficult
+x1, y1, x2, y2, x3, y3, x4, y4, category-name, difficult
 ```
 
 For example, 
@@ -47,10 +47,17 @@ For example,
 
 
 ### YOLO Dataset
+
 #### annotation format
 
+1. Object Detection
 ```txt
-category x y w h 
+category-id x y w h 
+```
+
+2. Instance Segmentation
+```txt
+category-id x1 y1 x2 y2 ... xn yn
 ```
 
 ##### Directory Structure

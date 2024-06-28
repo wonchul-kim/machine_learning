@@ -1,0 +1,14 @@
+path: /HDD/datasets/projects/interojo/split_datasets_yolo
+train: images/train # train images (relative to 'path') 1411 images
+val: images/val # val images (relative to 'path') 458 images
+# test: images/test # test images (optional) 937 images
+
+# Classes for DOTA 1.0
+names:
+  0: RING
+  1: LINE
+  2: DAMAGE
+  3: DUST
+  4: EDGE
+  5: BUBBLE
+  6: OVERLAP

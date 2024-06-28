@@ -6,7 +6,7 @@ import numpy as np
 from utils import xyxy2xywh
 
 input_dir = '/HDD/datasets/projects/interojo/split_datasets'
-output_dir = '/HDD/datasets/projects/interojo/split_datasets_yolo'
+output_dir = '/HDD/datasets/projects/interojo/split_datasets_yolo_od'
 
 image_width = 1626
 image_height = 1236
