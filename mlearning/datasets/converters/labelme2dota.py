@@ -5,8 +5,8 @@ import json
 import numpy as np
 from polygon2dota import polygon2dota_by_rotate
 
-input_dir = '/HDD/datasets/projects/rich/24.06.19/split_dataset_box'
-output_dir = '/HDD/datasets/projects/rich/24.06.19/split_dataset_box_dota'
+input_dir = '/HDD/datasets/projects/rich/split_dataset'
+output_dir = '/HDD/datasets/projects/rich/split_dataset_dota'
 
 if not osp.exists(output_dir):
     os.mkdir(output_dir)

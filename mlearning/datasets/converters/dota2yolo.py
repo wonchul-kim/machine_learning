@@ -1,28 +1,9 @@
 from pathlib import Path
 import cv2 
 import os
-from tqdm import tqdm as tqdm_original
 VERBOSE = str(os.getenv("YOLO_VERBOSE", True)).lower() == "true"  # global verbose mode
 TQDM_BAR_FORMAT = "{l_bar}{bar:10}{r_bar}" if VERBOSE else None  # tqdm bar format
 
-class TQDM(tqdm_original):
-    """
-    Custom Ultralytics tqdm class with different default arguments.
-
-    Args:
-        *args (list): Positional arguments passed to original tqdm.
-        **kwargs (any): Keyword arguments, with custom defaults applied.
-    """
-
-    def __init__(self, *args, **kwargs):
-        """
-        Initialize custom Ultralytics tqdm class with different default arguments.
-
-        Note these can still be overridden when calling TQDM.
-        """
-        kwargs["disable"] = not VERBOSE or kwargs.get("disable", False)  # logical 'and' with default value if passed
-        kwargs.setdefault("bar_format", TQDM_BAR_FORMAT)  # override default value if passed
-        super().__init__(*args, **kwargs)
 
 def convert_dota_to_yolo_obb(dota_root_path: str, save_dir: str, class2idx: dict):
     """
@@ -60,13 +41,6 @@ def convert_dota_to_yolo_obb(dota_root_path: str, save_dir: str, class2idx: dict
                     └─ val
     """
     dota_root_path = Path(dota_root_path)
-
-    # Class names to indices mapping
-    class_mapping = {
-        "BOX": 0,
-        "EGG": 1,
-    }
-
     def convert_label(image_name, image_width, image_height, orig_label_dir, save_dir):
         """Converts a single image's DOTA annotation to YOLO OBB format and saves it to a specified directory."""
         orig_label_path = orig_label_dir / f"{image_name}.txt"
@@ -79,7 +53,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str, save_dir: str, class2idx: dict
                 if len(parts) < 9:
                     continue
                 class_name = parts[8]
-                class_idx = class_mapping[class_name]
+                class_idx = class2idx[class_name]
                 coords = [float(p) for p in parts[:8]]
                 normalized_coords = [
                     coords[i] / image_width if i % 2 == 0 else coords[i] / image_height for i in range(8)
@@ -96,7 +70,7 @@ def convert_dota_to_yolo_obb(dota_root_path: str, save_dir: str, class2idx: dict
         save_labels_dir.mkdir(parents=True, exist_ok=True)
 
         image_paths = list(image_dir.iterdir())
-        for image_path in TQDM(image_paths, desc=f"Processing {phase} images"):
+        for image_path in image_paths:
             if image_path.suffix != ".bmp":
                 continue
             image_name_without_ext = image_path.stem
@@ -104,3 +78,11 @@ def convert_dota_to_yolo_obb(dota_root_path: str, save_dir: str, class2idx: dict
             h, w = img.shape[:2]
             convert_label(image_name_without_ext, w, h, orig_label_dir, save_labels_dir)
 
+
+input_dir = '/HDD/datasets/projects/rich/split_dataset_dota'
+output_dir = '/HDD/datasets/projects/rich/split_dataset_yolo'
+class_mapping = {
+        "BOX": 0,
+        "EGG": 1,
+    }
+convert_dota_to_yolo_obb(input_dir, output_dir, class_mapping)
