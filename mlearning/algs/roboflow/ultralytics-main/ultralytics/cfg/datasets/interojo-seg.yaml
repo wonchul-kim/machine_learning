@@ -8,17 +8,18 @@
 #     └── coco8-seg  ← downloads here (1 MB)
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-path: /HDD/datasets/projects/interojo/split_datasets_yolo_is # dataset root dir
+path: /DeepLearning/etc/_athena_tests/benchmark/interojo/split_dataset_yolo_is
 train: images/train # train images (relative to 'path') 4 images
 val: images/val # val images (relative to 'path') 4 images
 test: # test images (optional)
 
 # Classes
 names:
-  0: RING
-  1: LINE
-  2: DAMAGE
-  3: DUST
-  4: EDGE
-  5: BUBBLE
+  0: BUBBLE
+  1: DAMAGE
+  2: DUST
+  3: EDGE
+  4: RING
+  5: LINE
   6: OVERLAP
+
