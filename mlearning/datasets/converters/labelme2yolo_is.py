@@ -75,8 +75,8 @@ def labelme2yolo_instance_segmentation(input_dir, output_dir, image_ext,
             
             
 if __name__ == '__main__':
-    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset'
-    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset_yolo_is'
+    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/inner_body/split_dataset'
+    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/inner_body/split_dataset_yolo_is'
 
     copy_image = True
     image_ext = 'bmp'
