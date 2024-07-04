@@ -27,7 +27,7 @@ img_files = glob.glob(osp.join(input_dir, '*.bmp'))
 preds = {}
 compare = {}
 for img_file in img_files:
-    
+    filename = osp.split(osp.splitext(img_file)[0])[-1]
     result = model(img_file, save=False, imgsz=768, conf=0.5)[0]
     classes = result.boxes.cls.tolist()
     idx2class = result.names
@@ -53,11 +53,12 @@ for img_file in img_files:
         idx2class = _idx2class   
     
     
-    preds.update({img_file: {'idx2masks': idx2masks, 'idx2class': idx2class}})
+    preds.update({filename: {'idx2masks': idx2masks, 'idx2class': idx2class, 'img_file': img_file}})
     
     if compare_mask:
         _compare = vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, compare_mask=compare_mask)
-        compare.update({img_file: _compare})
+        _compare.update({"img_file": img_file})
+        compare.update({filename: _compare})
     else:
         vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, compare_mask=compare_mask)
             
