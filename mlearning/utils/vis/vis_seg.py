@@ -2,6 +2,27 @@ import os.path as osp
 import cv2 
 import numpy as np
 import warnings
+from mlearning.utils.metrics.iou import get_iou
+from shapely.geometry import (GeometryCollection, LineString, MultiLineString, MultiPoint, MultiPolygon, Point, Polygon,
+                              mapping)
+from shapely.ops import polygonize, unary_union
+
+def handle_self_intersection(points):
+    new_points = []
+    line = LineString([[int(x), int(y)] for x, y in points + [points[0]]])
+
+    polygons = list(polygonize(unary_union(line)))
+
+    if len(polygons) > 1:
+        print("The line is forming polygons by intersecting itself")
+        for polygon in polygons:
+            polygon = [list(item) for item in mapping(polygon)['coordinates'][0]]
+            new_points.append(polygon[:-1])
+    else:
+        return [points]
+
+    return new_points
+
 
 def get_key_by_value(dictionary, value):
     for key, val in dictionary.items():
@@ -9,14 +30,15 @@ def get_key_by_value(dictionary, value):
             return key
     return None
 
-def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None, compare_mask=True):
+def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None, compare_mask=True, iou_threshold=0.2):
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file)
     height, width, channel = img.shape
     vis_mask = np.zeros((height, width, channel))
     if compare_mask:
-        compare = {}
+        diff_dict = {}
+        points_dict = {'gt': {}, 'pred': {}}
         compr_pred_mask = {cls: np.zeros((height, width)) for cls in idx2class.values()}
     else:
         compr_pred_mask = None
@@ -57,6 +79,10 @@ def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None
                     if compare_mask:
                         cv2.fillConvexPoly(compr_gt_mask[label], np.array(points, dtype=np.int32), 
                                 color=1)
+                        if label in points_dict['gt']:
+                            points_dict['gt'][label].append(points)
+                        else:
+                            points_dict['gt'].update({label: [points]})
                 else:
                     warnings.warn(f"The points is {points} with {shape_type}")
                 
@@ -72,6 +98,11 @@ def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None
             # cv2.fillPoly(vis_mask, [points], color=tuple(map(int, color_map[int(cls)])))
             if compare_mask:
                 cv2.fillConvexPoly(compr_pred_mask[idx2class[int(cls)]], points, color=1)
+
+                if idx2class[int(cls)] in points_dict['pred']:
+                    points_dict['pred'][idx2class[int(cls)]].append(points.tolist())
+                else:
+                    points_dict['pred'].update({idx2class[int(cls)]: [points.tolist()]})
 
     vis_img = cv2.vconcat([text_ori, img])
 
@@ -103,15 +134,40 @@ def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None
                 cv2.putText(text_compr, f'{key} ({str(diff)})', origin, font, 0.6, (255, 255, 255), 1)
                 _vis_compr = cv2.vconcat([text_compr, _vis_compr])
                 vis_compr = cv2.hconcat([vis_compr, _vis_compr])
-                compare[key] = diff
+                diff_dict[key] = diff
             else:
                 vis_compr = val - compr_pred_mask[key]
                 diff = np.sum(np.abs(vis_compr))
                 cv2.putText(text_compr, f'{key} ({str(diff)})', origin, font, 0.6, (255, 255, 255), 1)
                 vis_compr = cv2.vconcat([text_compr, vis_compr])
-                compare[key] = diff
+                diff_dict[key] = diff
         
         vis_compr = 255*np.abs(vis_compr)
         cv2.imwrite(osp.join(output_dir, filename + '_diff.png'), vis_compr)
             
-        return compare
+        ious = {}
+        for gt_cls, gt_points in points_dict['gt'].items():
+            for pred_cls, pred_points in points_dict['pred'].items():
+                if gt_cls == pred_cls:
+                    for gt_point in gt_points:
+                        for pred_point in pred_points:
+                            try:
+                                iou = get_iou(gt_point, pred_point)
+                                if iou > iou_threshold:
+                                    if gt_cls in ious:
+                                        ious[gt_cls].append(iou)
+                                    else:
+                                        ious[gt_cls] = [iou]
+                                
+                            except:
+                                _gt_points = handle_self_intersection(gt_point)
+                                
+                                for _gt_point in _gt_points:
+                                    iou = get_iou(_gt_point, pred_point)
+                                    if iou > iou_threshold:
+                                        if gt_cls in ious:
+                                            ious[gt_cls].append(iou)
+                                        else:
+                                            ious[gt_cls] = [iou]
+            
+        return {'diff_pixel': diff_dict, 'diff_iou': ious}

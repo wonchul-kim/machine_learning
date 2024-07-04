@@ -39,7 +39,7 @@ for img_file in img_files:
     for cls, mask in zip(classes, masks):
         if cls not in idx2masks:
             idx2masks[cls] = []
-        idx2masks[cls].append([xy.tolist() for xy in mask.xy])
+        idx2masks[cls].append([xy.tolist() for xy in mask.xy][0])
     
     
     if _classes is not None:
@@ -64,12 +64,16 @@ for img_file in img_files:
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(preds, json_file, ensure_ascii=False, indent=4)
 
-
 if compare_mask:
     with open(osp.join(output_dir, 'diff.json'), 'w', encoding='utf-8') as json_file:
         json.dump(compare, json_file, ensure_ascii=False, indent=4)
+    
+    df_compare = pd.DataFrame(compare)
         
-    df_labels_by_image = pd.DataFrame(compare).T
-    df_labels_by_image.name = 'filename'
-    df_labels_by_image.fillna(0, inplace=True)
-    df_labels_by_image.to_csv(osp.join(output_dir, 'diff.csv'))
+    df_compare_pixel = df_compare.loc['diff_pixel'].T
+    df_compare_pixel.fillna(0, inplace=True)
+    df_compare_pixel.to_csv(osp.join(output_dir, 'diff_pixel.csv'))
+    
+    df_compare_pixel = df_compare.loc['diff_iou'].T
+    df_compare_pixel.fillna(0, inplace=True)
+    df_compare_pixel.to_csv(osp.join(output_dir, 'diff_iou.csv'))

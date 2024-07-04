@@ -81,8 +81,13 @@ with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_fil
 if compare_mask:
     with open(osp.join(output_dir, 'diff.json'), 'w', encoding='utf-8') as json_file:
         json.dump(compare, json_file, ensure_ascii=False, indent=4)
+    
+    df_compare = pd.DataFrame(compare)
         
-    df_labels_by_image = pd.DataFrame(compare).T
-    df_labels_by_image.name = 'filename'
-    df_labels_by_image.fillna(0, inplace=True)
-    df_labels_by_image.to_csv(osp.join(output_dir, 'diff.csv'))
+    df_compare_pixel = df_compare.loc['diff_pixel'].T
+    df_compare_pixel.fillna(0, inplace=True)
+    df_compare_pixel.to_csv(osp.join(output_dir, 'diff_pixel.csv'))
+    
+    df_compare_pixel = df_compare.loc['diff_iou'].T
+    df_compare_pixel.fillna(0, inplace=True)
+    df_compare_pixel.to_csv(osp.join(output_dir, 'diff_iou.csv'))
