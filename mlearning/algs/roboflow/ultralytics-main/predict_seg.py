@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 import imgviz
 import json
-from mlearning.utils.vis import vis_seg
+from mlearning.utils.vis.vis_seg import vis_seg
 
 weights_file = "/HDD/etc/best.pt"
 model = YOLO(weights_file) 
