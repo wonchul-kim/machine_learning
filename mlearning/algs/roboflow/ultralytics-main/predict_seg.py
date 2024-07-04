@@ -11,10 +11,11 @@ weights_file = "/HDD/etc/best.pt"
 model = YOLO(weights_file) 
 
 input_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset_yolo_is/images/val'
-output_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/yolo_results'
+json_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset/val'
+output_dir = '/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/results/yolo_results'
 
 if not osp.exists(output_dir):
-    os.mkdir(output_dir)
+    os.makedirs(output_dir)
 
 img_files = glob.glob(osp.join(input_dir, '*.bmp'))
 
@@ -36,7 +37,7 @@ for img_file in img_files:
     
     preds.update({img_file: {'idx2masks': idx2masks, 'idx2class': idx2class}})
     
-    vis_seg(img_file, idx2masks, idx2class, output_dir, color_map)
+    vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir)
     
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(preds, json_file, ensure_ascii=False, indent=4)
