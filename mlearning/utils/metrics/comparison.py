@@ -1,7 +1,7 @@
 import pandas as pd
 
 data1 = {
-    "/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset_yolo_is/images/val/124012500223026_9_RH_WELD1.bmp": {
+    "124012500223026_9_RH_WELD1": {
         "diff_pixel": {
             "ROI": 4435.0,
             "FILM": 77365.0,
@@ -19,7 +19,7 @@ data1 = {
             ]
         }
     },
-    "/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset_yolo_is/images/val/124012500565414_9_RH_WELD1.bmp": {
+    "124012500565414_9_RH_WELD1": {
         "diff_pixel": {
             "ROI": 3357.0,
             "FILM": 73992.0,
@@ -40,7 +40,7 @@ data1 = {
 }
 
 data2 = {
-    "/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset/val/124012500223026_9_RH_WELD1.bmp": {
+    "124012500223026_9_RH_WELD1": {
         "diff_pixel": {
             "ROI": 2645.0,
             "FILM": 76595.0,
@@ -58,7 +58,7 @@ data2 = {
             ]
         }
     },
-    "/DeepLearning/etc/_athena_tests/benchmark/sungwoo/u_gap/split_dataset/val/124012500565414_9_RH_WELD1.bmp": {
+    "124012500565414_9_RH_WELD1": {
         "diff_pixel": {
             "ROI": 1763.0,
             "FILM": 69593.0,
@@ -78,21 +78,19 @@ data2 = {
     }
 }
 
-# Extract the common keys
-common_keys = set(data1.keys()).intersection(set(data2.keys()))
-
-# Prepare data for comparison
 comparison_data = []
 
-for key in common_keys:
-    data1_diff_pixel = data1[key]["diff_pixel"]
-    data1_diff_iou = data1[key]["diff_iou"]
-    data2_diff_pixel = data2[key]["diff_pixel"]
-    data2_diff_iou = data2[key]["diff_iou"]
+for key1, val1 in data1.items():
+    val2 = data2[key1]
+    
+    data1_diff_pixel = val1["diff_pixel"]
+    data1_diff_iou = val1["diff_iou"]
+    data2_diff_pixel = val2["diff_pixel"]
+    data2_diff_iou = val2["diff_iou"]
     
     for region in data1_diff_pixel.keys():
         comparison_data.append({
-            "Image": key,
+            "Image": key1,
             "Region": region,
             "Data1_diff_pixel": data1_diff_pixel[region],
             "Data2_diff_pixel": data2_diff_pixel[region],
