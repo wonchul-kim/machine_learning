@@ -7,6 +7,8 @@ import json
 import cv2
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
+
 from mlearning.utils.vis.vis_obb import vis_obb
 from athena.src.tasks.obbdetection.frameworks.pytorch.models.utils.nms import nms_rotated
 from athena.src.tasks.obbdetection.frameworks.pytorch.models.utils.transforms import obb2poly_np_le90
@@ -55,17 +57,18 @@ model.bbox_head.test_cfg = {
 model.to('cuda:0')
 
 compare_gt = True
+iou_threshold = 0.7
 imgsz = 1664
 max_dets = 50
-conf_threshold = 0.5
-iou_threshold = 0.25
+nms_conf_threshold = 0.5
+nms_iou_threshold = 0.25
 classes = ['BOX']
 idx2class = {idx: cls for idx, cls in enumerate(classes)}
 _classes = ['BOX']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
 input_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
 json_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
-output_dir = f'/DeepLearning/etc/_athena_tests/benchmark/rich/{model_name}_results'
+output_dir = f'/DeepLearning/etc/_athena_tests/benchmark/rich/results/{model_name}_results'
 
 if not osp.exists(output_dir):
     os.makedirs(output_dir)
@@ -74,7 +77,7 @@ img_files = glob.glob(osp.join(input_dir, '*.bmp'))
 
 results = {}
 compare = {}
-for img_file in img_files:
+for img_file in tqdm(img_files):
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file).astype(np.float32)
     img_h, img_w, img_c = img.shape
@@ -86,12 +89,12 @@ for img_file in img_files:
     with torch.no_grad():
         preds = model(torch_img)
     pred = preds[0].detach().cpu()
-    dets, _ = nms_rotated(pred[:, :-1], pred[:, -1], iou_threshold=iou_threshold)
+    dets, _ = nms_rotated(pred[:, :-1], pred[:, -1], iou_threshold=nms_iou_threshold)
     confs, labels = torch.max(dets[:, 5:], axis=1)
 
     idx2xyxys = {}
     for det, conf, cls in zip(dets[:max_dets].numpy(), confs[:max_dets].numpy(), labels[:max_dets].numpy()):
-        if conf >= conf_threshold:
+        if conf >= nms_conf_threshold:
             if cls not in idx2xyxys.keys():
                 idx2xyxys[cls] = []
 
@@ -123,11 +126,11 @@ for img_file in img_files:
     results.update({filename: {'idx2xyxys': idx2xyxys, 'idx2class': idx2class, 'img_file': img_file}})
     
     if compare_gt:
-        _compare = vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt)
+        _compare = vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
         _compare.update({"img_file": img_file})
         compare.update({filename: _compare})
     else:
-        vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt)
+        vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
             
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(results, json_file, ensure_ascii=False, indent=4)

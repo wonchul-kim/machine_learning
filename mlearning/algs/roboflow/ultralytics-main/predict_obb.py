@@ -6,6 +6,7 @@ from ultralytics import YOLO
 import imgviz
 import json
 import pandas as pd
+from tqdm import tqdm
 
 from mlearning.utils.vis.vis_obb import vis_obb
 
@@ -14,8 +15,9 @@ model = YOLO(weights_file)
 
 input_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
 json_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
-output_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/yolo_obb_results'
+output_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/results/yolo_obb_results'
 
+iou_threshold = 0.7
 _classes = ['BOX']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
 
@@ -27,7 +29,7 @@ img_files = glob.glob(osp.join(input_dir, '*.bmp'))
 preds = {}
 compare = {}
 compare_gt = True
-for img_file in img_files:
+for img_file in tqdm(img_files):
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     pred = model(img_file, save=False, imgsz=2048, conf=0.5)[0]
     
@@ -57,11 +59,11 @@ for img_file in img_files:
     preds.update({filename: {'idx2xyxys': idx2xyxys, 'idx2class': idx2class, 'img_file': img_file}})
     
     if compare_gt:
-        _compare = vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt)
+        _compare = vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
         _compare.update({"img_file": img_file})
         compare.update({filename: _compare})
     else:
-        vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt)
+        vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
             
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(preds, json_file, ensure_ascii=False, indent=4)
