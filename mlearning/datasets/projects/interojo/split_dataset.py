@@ -5,9 +5,7 @@ from shutil import copyfile
 from tqdm import tqdm
 import random
 
-
-
-def split_dataset_v1(input_dir, output_dir):
+def split_dataset_v1(input_dir, output_dir, img_exts):
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
 
@@ -30,14 +28,18 @@ def split_dataset_v1(input_dir, output_dir):
                     os.mkdir(_output_dir)
                     
                 filename = osp.split(osp.splitext(json_file)[0])[-1]
-                img_file = osp.splitext(json_file)[0] + '.jpg'
-                assert osp.exists(img_file), RuntimeError(f"There is no such image file: {img_file}")
+                moved = False
+                for img_ext in img_exts:
+                    img_file = osp.splitext(json_file)[0] + f'.{img_ext}'
+                    
+                    if osp.exists(img_file):
+                        copyfile(img_file, osp.join(_output_dir, filename + f'.{img_ext}'))
+                        copyfile(json_file, osp.join(_output_dir, filename + '.json'))
+                        moved = True 
+                assert moved, RuntimeError(f"There is no such image file: {osp.join(input_dir, filename)} with {img_exts}")
 
-                copyfile(img_file, osp.join(_output_dir, filename + '.jpg'))
-                copyfile(json_file, osp.join(_output_dir, filename + '.json'))
 
-
-def split_dataset_v2(input_dir, output_dir):
+def split_dataset_v2(input_dir, output_dir, img_exts):
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
 
@@ -57,17 +59,23 @@ def split_dataset_v2(input_dir, output_dir):
                 os.mkdir(_output_dir)
                 
             filename = osp.split(osp.splitext(json_file)[0])[-1]
-            img_file = osp.splitext(json_file)[0] + '.jpg'
-            assert osp.exists(img_file), RuntimeError(f"There is no such image file: {img_file}")
+            moved = False
+            for img_ext in img_exts:
+                img_file = osp.splitext(json_file)[0] + f'.{img_ext}'
+                
+                if osp.exists(img_file):
+                    copyfile(img_file, osp.join(_output_dir, filename + f'.{img_ext}'))
+                    copyfile(json_file, osp.join(_output_dir, filename + '.json'))
+                    moved = True 
+            assert moved, RuntimeError(f"There is no such image file: {osp.join(input_dir, filename)} with {img_exts}")
 
-            copyfile(img_file, osp.join(_output_dir, filename + '.jpg'))
-            copyfile(json_file, osp.join(_output_dir, filename + '.json'))
                 
 if __name__ == '__main__':
-    input_dir = '/Data/01.Image/interojo/3rd_poc/211209_분리_ver2'
-    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/split_dataset'
+    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/raw_dataset'
+    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset'
     
-    split_dataset_v2(input_dir, output_dir)
+    img_exts = ['bmp']
+    split_dataset_v2(input_dir, output_dir, img_exts)
 
 
             
