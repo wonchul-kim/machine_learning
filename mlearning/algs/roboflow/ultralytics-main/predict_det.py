@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from tqdm import tqdm
 
-from mlearning.utils.vis.vis_obb import vis_obb
+from mlearning.utils.vis.vis_hbb import vis_hbb
 
 weights_file = "/HDD/etc/yolov8/obb/best.pt"
 model = YOLO(weights_file) 
@@ -59,11 +59,11 @@ for img_file in tqdm(img_files):
     preds.update({filename: {'idx2xyxys': idx2xyxys, 'idx2class': idx2class, 'img_file': img_file}})
     
     if compare_gt:
-        _compare = vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
+        _compare = vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
         _compare.update({"img_file": img_file})
         compare.update({filename: _compare})
     else:
-        vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
+        vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
             
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(preds, json_file, ensure_ascii=False, indent=4)

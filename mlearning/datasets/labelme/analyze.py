@@ -121,8 +121,8 @@ if __name__ == '__main__':
     
     # analyze_labelme(input_dir, output_dir, project_name, title, subtitle)
     
-    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset'
-    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/reports'
+    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset'
+    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/reports'
 
     project_name = 'Rich-Box'
     title = "Dataset Analysis"
