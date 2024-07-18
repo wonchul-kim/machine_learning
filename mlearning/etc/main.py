@@ -1,7 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.profiler import profile, record_function, ProfilerActivity
 
+
+    
 # 간단한 모델 정의
 class SimpleModel(nn.Module):
     def __init__(self):
@@ -34,8 +37,13 @@ for param in model.parameters():
     print('1. param: ', param)
     print(param.grad)
 
-# 옵티마이저 스텝
-optimizer.step()
+with profile(
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    record_shapes=True
+) as prof:
+    optimizer.step()
+
+prof.export_chrome_trace('optimizer_trace.json')
 
 # Gradient 확인
 for param in model.parameters():
