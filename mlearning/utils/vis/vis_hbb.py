@@ -31,7 +31,7 @@ def get_key_by_value(dictionary, value):
             return key
     return None
 
-def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, compare_gt=False, iou_threshold=0.2):
+def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, compare_gt=False, iou_threshold=0.2, line_width=2):
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file)
@@ -42,7 +42,6 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
         points_dict = {'gt': {}, 'pred': {}}
     vis_gt = None, None
     
-    line_width = 2
     origin = 25, 25
     font = cv2.FONT_HERSHEY_SIMPLEX
     text_ori = np.zeros((50, width, 3), np.uint8)
@@ -74,10 +73,10 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
                 
                 if len(points) == 2:
                     cv2.rectangle(vis_gt, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])), 
-                                  tuple(map(int, color_map[-1])), line_width + 3)
+                                  tuple(map(int, color_map[-1])), line_width + 1)
                     if compare_gt:
                         cv2.rectangle(vis_compare, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])),
-                                    tuple(map(int, color_map[-1])), line_width + 3)
+                                    tuple(map(int, color_map[-1])), line_width + 1)
 
                         if label in points_dict['gt']:
                             points_dict['gt'][label].append(points)
