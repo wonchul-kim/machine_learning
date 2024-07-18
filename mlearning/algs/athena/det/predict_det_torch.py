@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import io
 
 from mlearning.utils.vis.vis_hbb import vis_hbb
 from mlearning.utils.functionals import letterbox
@@ -19,9 +18,12 @@ from athena.src.tasks.detection.frameworks.pytorch.models.yolov5.utils.general i
                                                                                        xyxy2xywh)
 
 compare_mask = True
-imgsz = 640
+imgsz = 1024
 device = 'cuda'
-weights = '/DeepLearning/etc/_athena_tests/recipes/agent/detection/pytorch/train_unit/_outputs/DETECTION/2023_12_19_11_09_36/train/weights/last.pt'
+weights = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/outputs/DETECTION/2024_07_17_19_23_31/train/weights/last.pt'
+input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset/val'
+json_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset/val'
+output_dir = f'/DeepLearning/etc/_athena_tests/benchmark/interojo/results/yolov7_results'
 
 model = attempt_load7(weights, map_location=device)  # load FP32 model
 imgsz = check_img_size(imgsz, s=model.stride.max())  # check image size
@@ -35,10 +37,8 @@ iou_threshold = 0.7
 max_dets = 50
 nms_conf_threshold = 0.25
 nms_iou_threshold = 0.1
+line_width = 1
 classes = model.classes
-input_dir = '/DeepLearning/_athena_tests/datasets/rectangle1/split_dataset_unit/val'
-json_dir = '/DeepLearning/_athena_tests/datasets/rectangle1/split_dataset_unit/val'
-output_dir = f'/DeepLearning/etc/_athena_tests/benchmark/interojo/results/yolov7_results'
 
 if not osp.exists(output_dir):
     os.makedirs(output_dir)
@@ -79,12 +79,12 @@ for img_file in tqdm(img_files):
     
     if compare_gt:
         _compare = vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, 
-                           compare_gt=compare_gt, iou_threshold=iou_threshold)
+                           compare_gt=compare_gt, iou_threshold=iou_threshold, line_width=line_width)
         _compare.update({"img_file": img_file})
         compare.update({filename: _compare})
     else:
         vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, 
-                compare_gt=compare_gt, iou_threshold=iou_threshold)
+                compare_gt=compare_gt, iou_threshold=iou_threshold, line_width=line_width)
             
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(results, json_file, ensure_ascii=False, indent=4)
