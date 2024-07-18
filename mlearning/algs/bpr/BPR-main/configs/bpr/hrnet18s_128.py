@@ -1,5 +1,5 @@
 import os
-_data_root = os.environ.get('DATA_ROOT')
+_data_root = os.environ.get('DATA_ROOT', '/HDD/datasets/public/bpr/thresh_0_25_ps_64_pd_0')
 del os
 
 _base_ = [
