@@ -8,13 +8,14 @@ from tqdm import tqdm
 
 
 
-def labelme2yolo_object_detection(input_dir, output_dir, image_width, image_height, copy_image, image_exts):
+def labelme2yolo_object_detection(input_dir, output_dir, copy_image, image_exts):
 
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
         
     folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
 
+    image_width, image_height = None, None
 
     class2idx = {}
     for folder in folders:
@@ -29,7 +30,11 @@ def labelme2yolo_object_detection(input_dir, output_dir, image_width, image_heig
             filename = osp.split(osp.splitext(json_file)[0])[-1]
             txt = open(osp.join(_output_labels_dir, filename + '.txt'), 'w')
             with open(json_file, 'r') as jf:
-                anns = json.load(jf)['shapes']
+                _anns = json.load(jf)
+                anns = _anns['shapes']
+                
+                if 'imageHeight' in _anns and 'imageWidth' in _anns:
+                    image_height, image_width = _anns['imageHeight'], _anns['imageWidth']
                 
             if copy_image:
                 import cv2
@@ -72,8 +77,9 @@ def labelme2yolo_object_detection(input_dir, output_dir, image_width, image_heig
                     else: 
                         print(f"NotImplemented shape: {shape_type} for {json_file}")
                         continue
-                    
 
+                        
+                    assert image_width is not None and image_height is not None, RuntimeError(f"Image width is {image_width} and image height is {image_height}")
                     xywh = xyxy2xywh([image_height, image_width], xyxy)
                     txt.write(str(class2idx[label]) + ' ')
                     for kdx in range(len(xywh)):
@@ -92,13 +98,10 @@ def labelme2yolo_object_detection(input_dir, output_dir, image_width, image_heig
             
             
 if __name__ == '__main__':
-    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset'
-    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_datasets_yolo_od'
-
-    image_width = 800
-    image_height = 800
+    input_dir = '/storage/projects/ktg/24.07.10/split_dataset'
+    output_dir = '/storage/projects/ktg/24.07.10/split_datasets_yolo_hbb'
 
     copy_image = True
     image_ext = 'bmp'
     
-    labelme2yolo_object_detection(input_dir, output_dir, image_width, image_height, copy_image, image_ext)
+    labelme2yolo_object_detection(input_dir, output_dir, copy_image, image_ext)
