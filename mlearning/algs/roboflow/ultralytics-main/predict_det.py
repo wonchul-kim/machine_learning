@@ -10,15 +10,16 @@ from tqdm import tqdm
 
 from mlearning.utils.vis.vis_hbb import vis_hbb
 
-weights_file = "/HDD/etc/yolov8/obb/best.pt"
+weights_file = "/HDD/_projects/github/machine_learning/runs/detect/train3/weights/best.pt"
 model = YOLO(weights_file) 
 
-input_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
-json_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/split_dataset/val'
-output_dir = '/DeepLearning/etc/_athena_tests/benchmark/rich/results/yolo_obb_results'
+input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset/val'
+json_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset/val'
+output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/results/yolo_hbb_results'
 
+line_width = 1
 iou_threshold = 0.7
-_classes = ['BOX']
+_classes = ['DUST', 'SCRATCH', 'BOLD', 'LINE', 'BUBBLE', 'FOLD', 'TIP', 'BURR', 'REACT', 'DAMAGE', 'RING']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
 
 if not osp.exists(output_dir):
@@ -31,25 +32,25 @@ compare = {}
 compare_gt = True
 for img_file in tqdm(img_files):
     filename = osp.split(osp.splitext(img_file)[0])[-1]
-    pred = model(img_file, save=False, imgsz=2048, conf=0.5)[0]
+    pred = model(img_file, save=False, imgsz=832, conf=0.5)[0]
     
     idx2class = pred.names
-    obb_result = pred.obb
-    classes = obb_result.cls.tolist()
-    confs = obb_result.conf.tolist()
+    boxes = pred.boxes
+    classes = boxes.cls.tolist()
+    confs = boxes.conf.tolist()
     
     idx2xyxys = {}
-    for cls, xyxys in zip(classes, obb_result.xyxyxyxy):
+    for cls, xyxys in zip(classes, boxes.xyxy.tolist()):
         if cls not in idx2xyxys:
             idx2xyxys[cls] = []
-        idx2xyxys[cls].append([xy.tolist() for xy in xyxys])
-    
+        
+        idx2xyxys[cls].append([[xyxys[0], xyxys[1]], [xyxys[2], xyxys[3]]])
     
     if _classes is not None:
         new_idx2xyxys = {}
         for idx, _cls in enumerate(_classes):
             for jdx, cls in enumerate(idx2class.values()):
-                if cls == _cls:
+                if cls == _cls and jdx in idx2xyxys:
                     new_idx2xyxys[idx] = idx2xyxys[jdx]
         
         idx2xyxys = new_idx2xyxys
@@ -59,11 +60,13 @@ for img_file in tqdm(img_files):
     preds.update({filename: {'idx2xyxys': idx2xyxys, 'idx2class': idx2class, 'img_file': img_file}})
     
     if compare_gt:
-        _compare = vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
+        _compare = vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold,
+                           line_width=line_width)
         _compare.update({"img_file": img_file})
         compare.update({filename: _compare})
     else:
-        vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, iou_threshold=iou_threshold)
+        vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir, compare_gt=compare_gt, 
+                iou_threshold=iou_threshold, line_width=line_width)
             
 with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
     json.dump(preds, json_file, ensure_ascii=False, indent=4)
