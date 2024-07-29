@@ -8,6 +8,22 @@ from shapely.geometry import (GeometryCollection, LineString, MultiLineString, M
 from shapely.ops import polygonize, unary_union
 from copy import deepcopy
 
+def get_text_coords(points, width, height, offset_w=0, offset_h=10):
+    text_coord_x, text_coord_y = int(np.min(points, axis=0)[0]), int(np.min(points, axis=0)[1] - 10)
+    if text_coord_x < offset_w:
+        text_coord_x = int(np.max(points, axis=0)[0] + offset_w)
+        
+    if text_coord_x > width - 100:
+        text_coord_x = 10
+        
+    if text_coord_y < offset_h:
+        text_coord_y = int(np.max(points, axis=0)[1] + offset_h)
+        
+    if text_coord_y > height - 100:
+        text_coord_y = 10
+        
+    return (text_coord_x, text_coord_y)
+
 def handle_self_intersection(points):
     new_points = []
     line = LineString([[int(x), int(y)] for x, y in points + [points[0]]])
@@ -31,7 +47,7 @@ def get_key_by_value(dictionary, value):
             return key
     return None
 
-def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, compare_gt=False, iou_threshold=0.2, line_width=2):
+def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, compare_gt=False, iou_threshold=0.2, line_width=2, font_scale=1):
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file)
@@ -74,10 +90,14 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
                 if len(points) == 2:
                     cv2.rectangle(vis_gt, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])), 
                                   tuple(map(int, color_map[-1])), line_width + 1)
+                    cv2.putText(vis_gt, label, get_text_coords(points, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
+                                tuple(map(int, color_map[-1])), line_width)
+
                     if compare_gt:
                         cv2.rectangle(vis_compare, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])),
                                     tuple(map(int, color_map[-1])), line_width + 1)
-
+                        cv2.putText(vis_compare, label, get_text_coords(points, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
+                                    tuple(map(int, color_map[-1])), line_width)
                         if label in points_dict['gt']:
                             points_dict['gt'][label].append(points)
                         else:
@@ -89,14 +109,19 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
         vis_gt = cv2.vconcat([text_gt, vis_gt])
             
             
-    for cls, xyxys in idx2xyxys.items():
-        for xyxy in xyxys:
+    for cls, pred in idx2xyxys.items():
+        for xyxy in pred['bbox']:
             points = np.array(xyxy, dtype=np.int32)
             cv2.rectangle(vis_hbb, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])), 
                                   tuple(map(int, color_map[int(cls)])), line_width)
+            cv2.putText(vis_hbb, f"{idx2class[int(cls)]} {pred['confidence']:.2f}", get_text_coords(points, width, height), 
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), line_width)
+
             if compare_gt:
                 cv2.rectangle(vis_compare, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])), 
                                   tuple(map(int, color_map[int(cls)])), line_width)
+                cv2.polylines(vis_compare, [np.array(xyxy, dtype=np.int32)], True,
+                                    tuple(map(int, color_map[int(cls)])), line_width)
                 
                 if idx2class[int(cls)] in points_dict['pred']:
                     points_dict['pred'][idx2class[int(cls)]].append(points.tolist())
@@ -126,7 +151,7 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
             vis_compare = cv2.vconcat([text_compare, vis_compare])
             vis_res = cv2.hconcat([vis_img, vis_gt, vis_hbb, vis_compare, vis_legend])
         else:
-            vis_res = cv2.hconcat([vis_img, vis_gt, vis_hbb, vis_legend])
+            vis_res = cv2.hconcat([vis_img, vis_hbb, vis_legend])
 
     cv2.imwrite(osp.join(output_dir, filename + '.png'), vis_res)
     if compare_gt:
