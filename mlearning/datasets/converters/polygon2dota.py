@@ -3,7 +3,7 @@ import os.path as osp
 from typing import Union
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
-from utils import get_obb_coord_by_roatate, get_obb_coord_by_convex, coords2polygon, coords2numpy
+from mlearning.datasets.converters.utils import get_obb_coord_by_roatate, get_obb_coord_by_convex, coords2polygon, coords2numpy
 
 def polygon2dota_by_rotate(coords: Union[list, np.ndarray, Polygon], rotate_degree:int = 1, flatten: bool = False, output_dir: str = None):
     polygon = coords2polygon(coords)
