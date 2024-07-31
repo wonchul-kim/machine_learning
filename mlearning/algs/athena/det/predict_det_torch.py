@@ -19,6 +19,7 @@ from athena.src.tasks.detection.frameworks.pytorch.models.yolov5.utils.general i
 compare_mask = True
 imgsz = 2048
 device = 'cuda'
+
 # weights = '/DeepLearning/_projects/sungjin_body/tr_0.1/train/weights/best.pt'
 
 # # input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/기타'
@@ -29,15 +30,16 @@ device = 'cuda'
 # json_dir = None
 # output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.1/winter/wo_json/기타'
 
-weights = '/DeepLearning/_projects/sungjin_body/tr_0.5_1st/2024_07_26_16_28_42/train/weights/best.pt'
 
-# input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/학습'
-# json_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/학습'
-# output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.5_1st/winter/w_json/학습'
+weights = '/DeepLearning/_projects/sungjin_body/tr_0.5/2024_07_29_04_58_53/train/weights/best.pt'
 
-input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/기타'
+# input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/기타'
+# json_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/기타'
+# output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.5/winter/w_json/기타'
+
+input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/학습'
 json_dir = None
-output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.5_1st/winter/wo_json/기타'
+output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.5/winter/wo_json/학습'
 
 compare_gt = True if json_dir is not None else False
 model = attempt_load7(weights, map_location=device)  # load FP32 model

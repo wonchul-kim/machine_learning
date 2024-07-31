@@ -13,21 +13,20 @@ from mlearning.utils.vis.vis_hbb_patch import vis_hbb_patch
 from mlearning.utils.functionals import letterbox
 from athena.src.tasks.detection.frameworks.pytorch.models.yolov7.models.experimental import attempt_load as attempt_load7
 from athena.src.tasks.detection.frameworks.pytorch.models.yolov5.utils.general import check_img_size
-from athena.src.tasks.detection.frameworks.pytorch.models.yolov5.utils.general import (non_max_suppression,
-                                                                                       scale_coords)
+from athena.src.tasks.detection.frameworks.pytorch.models.yolov5.utils.general import (non_max_suppression, scale_coords)
 
 compare_mask = True
 imgsz = 1024
 device = 'cuda'
-weights = '/DeepLearning/_projects/sungjin_body/patch/best.pt'
+weights = '/DeepLearning/_projects/sungjin_body/patch/2024_07_28_10_56_16/train/weights/best.pt'
 
-# input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/학습'
-# json_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/학습'
-# output_dir = f'/DeepLearning/_projects/sungjin_body/tests/patch/winter/w_json/학습'
+input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/기타'
+json_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/기타'
+output_dir = f'/DeepLearning/_projects/sungjin_body/tests/patch/winter/w_json/기타'
 
-input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/학습'
-json_dir = None
-output_dir = f'/DeepLearning/_projects/sungjin_body/tests/athena_tr_0.1/winter/wo_json/학습'
+# input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/기타'
+# json_dir = None
+# output_dir = f'/DeepLearning/_projects/sungjin_body/tests/patch/winter/wo_json/기타'
 
 patch_overlap_ratio = 0.1
 patch_width = imgsz
@@ -44,7 +43,6 @@ model(torch.zeros(1, 3, imgsz[0], imgsz[1]).to(device).type_as(next(model.parame
 idx2class = {ii: vv for ii, vv in enumerate(model.classes)}
 
 iou_threshold = 0.5
-max_dets = 50
 nms_conf_threshold = 0.25
 nms_iou_threshold = 0.1
 line_width = 5
