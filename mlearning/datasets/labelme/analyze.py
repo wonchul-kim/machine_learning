@@ -78,6 +78,7 @@ def analyze_labelme(input_dir, output_dir, project_name, title, subtitle):
     plt.ylabel('Number of Images')
     plt.grid(True)
     plt.savefig(osp.join(output_dir, 'num_images_bar.png'))
+    plt.close()
     draw_pie_chart(num_images, 'Number of Images', osp.join(output_dir, f'num_images_pie.png'))
 
 
@@ -97,16 +98,37 @@ def analyze_labelme(input_dir, output_dir, project_name, title, subtitle):
     plt.figure(figsize=(6, 6))  
     for key, val in objects_by_label.items():
         plt.scatter(val['width'], val['height'], marker='o', s=5, label=key)
-    plt.title('Object Sizes')  
+    plt.title('Object XYs')  
     plt.xlabel('Width') 
     plt.ylabel('Height')
     plt.grid(True) 
     plt.legend()
-    plt.savefig(osp.join(output_dir, 'objects_size_by_labels.png'))
+    plt.savefig(osp.join(output_dir, 'objects_xy_by_labels.png'))
+    plt.close()
 
+    txt_size = open(osp.join(output_dir, 'min_max_size.txt'), 'w')
     for key, val in objects_by_label.items():
-        draw_dist_chart(val, key, osp.join(output_dir, f'objects_size_{key}.png'))
+        plt.figure(figsize=(6, 6))  
+        plt.scatter(val['width'], val['height'], marker='o', s=5, label=key)
+        plt.figtext(0.01, 0, f"Min. height : {np.min(val['height'])}, Max height: {np.max(val['height'])}", fontsize=10)
+        plt.figtext(0.01, 0.02, f"Min. width : {np.min(val['width'])}, Max width: {np.max(val['width'])}", fontsize=10)
+        plt.title(f'{key} XYs')  
+        plt.xlabel('Width') 
+        plt.ylabel('Height')
+        plt.grid(True) 
+        # plt.legend()
+        plt.savefig(osp.join(output_dir, f'objects_xy_by_{key}.png'))
+        plt.close()
 
+        txt_size.write(f"{key}: \n")
+        txt_size.write(f"   * min. height: {np.min(val['height'])}\n")
+        txt_size.write(f"   * min. width: {np.min(val['width'])}\n\n")
+    txt_size.close()        
+        
+        
+        
+    for key, val in objects_by_label.items():
+        draw_dist_chart(val, key, osp.join(output_dir, f'objects_wh_{key}.png'))
 
 
     create_pdf(title, subtitle, output_dir)
@@ -121,8 +143,8 @@ if __name__ == '__main__':
     
     # analyze_labelme(input_dir, output_dir, project_name, title, subtitle)
     
-    input_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/rect/split_dataset'
-    output_dir = '/DeepLearning/etc/_athena_tests/benchmark/interojo/reports'
+    input_dir = '/HDD/datasets/projects/sungjin/body/24.06.19/split_dataset'
+    output_dir = '/DeepLearning/_projects/sungjin_body/summarize/dataset'
 
     project_name = 'Rich-Box'
     title = "Dataset Analysis"
