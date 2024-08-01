@@ -4,6 +4,8 @@ import cv2
 import json
 import os
 from tqdm import tqdm 
+import numpy as np
+from copy import deepcopy
 
 from mlearning.datasets.labelme.utils import add_labelme_element, init_labelme_json 
 
@@ -28,7 +30,14 @@ def intersection(boxA, boxB):
         return None
 
 
-def labelme2patches(input_dir, output_dir, patch_width, patch_height, image_ext='bml', patch_overlap_ratio = 0.2):
+def min_max_normalize(image_array, min_val, max_val):
+    normalized_array = (image_array - min_val) / (max_val - min_val)
+    return np.clip(normalized_array, 0, 1)  # 값을 0과 1 사이로 클리핑
+
+
+def labelme2patches(input_dir, output_dir, patch_width, patch_height, 
+                    image_ext='bmp', patch_overlap_ratio = 0.2,
+                    norm_val=None):
 
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
@@ -75,11 +84,16 @@ def labelme2patches(input_dir, output_dir, patch_width, patch_height, image_ext=
                         _labelme = add_labelme_element(_labelme, ann['shape_type'], ann['label'], intersected_box)
                         
                 if included:
-                    cv2.imwrite(osp.join(output_dir, filename + f'_{num_patches}.{image_ext}'), img[ymin:ymax, xmin:xmax, :])
+                    if norm_val is not None:
+                        if norm_val['type'] == 'min_max':
+                            patch = min_max_normalize(deepcopy(img[ymin:ymax, xmin:xmax, :]), norm_val['min_val'], norm_val['max_val'])
+                            patch = (patch * 255).astype(np.uint8)
+                    else:
+                        patch = deepcopy(img[ymin:ymax, xmin:xmax, :])
+                    cv2.imwrite(osp.join(output_dir, filename + f'_{num_patches}.{image_ext}'), 
+                                cv2.cvtColor(patch, cv2.COLOR_RGB2BGR))
                     with open(osp.join(output_dir, filename + f'_{num_patches}.json'), 'w') as jf:
                         json.dump(_labelme, jf)
-                    
-                    
 
 
 input_dir = '/HDD/datasets/projects/sungjin/body/test'
@@ -88,8 +102,12 @@ output_dir = '/HDD/datasets/projects/sungjin/body/test/patches'
 patch_overlap_ratio = 0.2
 patch_width = 1024
 patch_height = 1024
+
+# norm_val = {'type': 'min_max', 'min_val': 44, 'max_val': 235}
+norm_val = None
     
-labelme2patches(input_dir, output_dir, patch_width, patch_height)
+labelme2patches(input_dir, output_dir, patch_width, patch_height,
+                norm_val=norm_val)
                         
                     
                     

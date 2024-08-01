@@ -5,38 +5,38 @@ import numpy as np
 import os
 from tqdm import tqdm 
 
-def get_mean_std(input_dir, output_dir, xyxy=None):
+def min_max_normalize(image_array):
+    normalized_array = (image_array - np.min(image_array)) / (np.max(image_array) - np.min(image_array))
+    return normalized_array
+
+def get_min_max(input_dir, output_dir, xyxy=None):
 
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
     
-    mean = np.zeros(3)
-    std = np.zeros(3)
+    min_val = float('inf')
+    max_val = float('-inf')
     num_images = 0
     img_files = glob.glob(osp.join(input_dir, '*.bmp'))
     for img_file in tqdm(img_files):
         
         img = cv2.imread(img_file)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        
+
+
         if xyxy is not None:
-            img = img[xyxy[1]:xyxy[3], xyxy[0]:xyxy[2]]
+            img = img[xyxy[1]:xyxy[3], xyxy[0]:xyxy[2], :]
         
-        img = img/255.0
-        
-        mean += img.mean(axis=(0, 1))
-        std += img.std(axis=(0, 1))
+        min_val = min(min_val, np.min(img))
+        max_val = max(max_val, np.max(img))
         num_images += 1
 
-    mean /= num_images
-    std /= num_images 
+    print("* min_val: ", min_val)
+    print("* max_val: ", max_val)      
     
-    print("* Mean: ", mean)
-    print("* std: ", std)      
-    
-    txt = open(osp.join(output_dir, 'mean_std.txt'), 'w')
-    txt.write(f"mean: {mean}\n")
-    txt.write(f"std: {std}\n")
+    txt = open(osp.join(output_dir, 'min_max.txt'), 'w')
+    txt.write(f"min_val: {min_val}\n")
+    txt.write(f"max_val: {max_val}\n")
     txt.close()
          
 input_dir = '/HDD/datasets/projects/sungjin/body/test'
@@ -48,7 +48,7 @@ patch_height = 1024
 
 xyxy = [350, 150, 350 + 1664, 150 + 1664]
     
-get_mean_std(input_dir, output_dir, xyxy)
+get_min_max(input_dir, output_dir, xyxy)
                         
                     
                     
