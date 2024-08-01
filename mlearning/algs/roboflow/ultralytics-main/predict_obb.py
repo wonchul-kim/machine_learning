@@ -10,18 +10,18 @@ from tqdm import tqdm
 
 from mlearning.utils.vis.vis_obb import vis_obb
 
-weights_file = "/DeepLearning/_projects/kt_g/wonchul/240726/obb/weights/best.pt"
+weights_file = "/DeepLearning/_projects/kt_g/wonchul/240801/obb/train4/weights/best.pt"
 model = YOLO(weights_file) 
 
-# input_dir = '/DeepLearning/_projects/kt_g/24.07.25/test'
-# json_dir = None
-# output_dir = '/DeepLearning/_projects/kt_g/wonchul/240726/test/obb_test'
-# compare_gt = False
-
-input_dir = '/Data/01.Image/kt&g/24.07.26/unseen_img'
+input_dir = '/DeepLearning/_projects/kt_g/24.07.25/test'
 json_dir = None
-output_dir = '/DeepLearning/_projects/kt_g/wonchul/240726/test/obb_unseen'
+output_dir = '/DeepLearning/_projects/kt_g/wonchul/240801/test/obb_test'
 compare_gt = False
+
+# input_dir = '/Data/01.Image/kt&g/24.07.26/unseen_img'
+# json_dir = None
+# output_dir = '/DeepLearning/_projects/kt_g/wonchul/240726/test/obb_unseen'
+# compare_gt = False
 
 iou_threshold = 0.1
 conf_threshold = 0.1
@@ -52,9 +52,9 @@ for img_file in tqdm(img_files):
     idx2xyxys = {}
     for cls, xyxys, conf in zip(classes, obb_result.xyxyxyxy, confs):
         if cls not in idx2xyxys:
-            idx2xyxys[cls] = {'polygon': [], 'confidence': 0}
+            idx2xyxys[cls] = {'polygon': [], 'confidence': []}
         idx2xyxys[cls]['polygon'].append([xy.tolist() for xy in xyxys])
-        idx2xyxys[cls]['confidence'] = conf
+        idx2xyxys[cls]['confidence'].append(conf)
     
     if _classes is not None:
         new_idx2xyxys = {}

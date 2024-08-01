@@ -108,9 +108,9 @@ def vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
             
             
     for cls, pred in idx2xyxys.items():
-        for xyxy in pred['polygon']:
+        for xyxy, conf in zip(pred['polygon'], pred['confidence']):
             points = np.array(xyxy, dtype=np.int32)
-            cv2.putText(vis_obb, f"{idx2class[int(cls)]} {pred['confidence']:.2f}", get_text_coords(points, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), line_width)
+            cv2.putText(vis_obb, f"{idx2class[int(cls)]} {conf:.2f}", get_text_coords(points, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), line_width)
             cv2.polylines(vis_obb, [points], True,
                           tuple(map(int, color_map[int(cls)])), line_width)
             if compare_gt:
