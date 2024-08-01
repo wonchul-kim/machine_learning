@@ -5,7 +5,7 @@ import numpy as np
 import os
 from tqdm import tqdm 
 
-def get_mean_std(input_dir, output_dir):
+def get_mean_std(input_dir, output_dir, xyxy=None):
 
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
@@ -17,6 +17,9 @@ def get_mean_std(input_dir, output_dir):
     for img_file in tqdm(img_files):
         
         img = cv2.imread(img_file)
+        
+        if xyxy is not None:
+            img = img[xyxy[1]:xyxy[3], xyxy[0]:xyxy[2]]
         
         img = img/255.0
         
@@ -41,8 +44,10 @@ output_dir = '/HDD/datasets/projects/sungjin/body/test/patches'
 patch_overlap_ratio = 0.2
 patch_width = 1024
 patch_height = 1024
+
+xyxy = [350, 150, 350 + 1664, 150 + 1664]
     
-get_mean_std(input_dir, output_dir)
+get_mean_std(input_dir, output_dir, xyxy)
                         
                     
                     
