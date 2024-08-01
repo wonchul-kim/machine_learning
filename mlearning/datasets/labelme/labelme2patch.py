@@ -81,6 +81,10 @@ def labelme2patches(input_dir, output_dir, patch_width, patch_height,
                     
                     if intersected_box:
                         included = True 
+                        
+                        for intersected_point in intersected_box:
+                            intersected_point[0] -= xmin
+                            intersected_point[1] -= ymin
                         _labelme = add_labelme_element(_labelme, ann['shape_type'], ann['label'], intersected_box)
                         
                 if included:
