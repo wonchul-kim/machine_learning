@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 input_dir = "/DeepLearning/_projects/sungjin_body/tests"
-output_dir = '/DeepLearning/_projects/sungjin_body/summarize'
+output_dir = '/DeepLearning/_projects/sungjin_body/summarize_v2'
 
 if not osp.exists(output_dir):
     os.mkdir(output_dir)
@@ -15,7 +15,7 @@ if not osp.exists(output_dir):
 datasets = ['winter/w_json/학습', 'winter/w_json/기타', 'winter/wo_json/학습', 'winter/wo_json/기타']
 resize_factor = 3
 
-folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
+folders = sorted([folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)])
 num_folders = len(folders)
 for dataset in datasets:
     img_files = glob.glob(osp.join(input_dir, folders[0], dataset, '*.png'))

@@ -10,27 +10,28 @@ from tqdm import tqdm
 
 from mlearning.utils.vis.vis_obb import vis_obb
 
-weights_file = "/DeepLearning/_projects/kt_g/wonchul/240801/obb/train4/weights/best.pt"
+weights_file = "/DeepLearning/_projects/kt_g/wonchul/240805/obb/train4/weights/best.pt"
 model = YOLO(weights_file) 
 
-# input_dir = '/DeepLearning/_projects/kt_g/24.07.25/test'
-# json_dir = None
-# output_dir = '/DeepLearning/_projects/kt_g/wonchul/240801/test/obb_test'
-# compare_gt = False
-
-input_dir = '/Data/01.Image/kt&g/24.07.26/unseen_img'
+input_dir = '/DeepLearning/_projects/kt_g/24.07.25/test'
 json_dir = None
-output_dir = '/DeepLearning/_projects/kt_g/wonchul/240801/test/obb_unseen'
+output_dir = '/DeepLearning/_projects/kt_g/wonchul/240805/test/obb_seen'
 compare_gt = False
 
-iou_threshold = 0.1
-conf_threshold = 0.1
+# input_dir = '/Data/01.Image/kt&g/24.07.26/unseen_img'
+# json_dir = None
+# output_dir = '/DeepLearning/_projects/kt_g/wonchul/240805/test/obb_unseen'
+# compare_gt = False
+
+iou_threshold = 0.7
+conf_threshold = 0.25
 line_width = 12
 font_scale = 10
 imgsz = 2048
-_classes = ['MIX_ETC', 'NGP', 'SOO_ETC', 'SOO', 'SOO_0.5', 'SOO_0.1', 'ESSE_0.5', 'FIIT_CHANGE', 'FIIT_UP', 'MIX_BANG', 
-            'BOHEM_3',  'MIX_BLU',  'BOHEM_ETC',  'MIX_ICEAN',  'BOHEM_1',  'RAISON_FB',  'BOHEM_6',  'ETC',  
-            'ESSE_ETC',  'ESSE_GOLD',  'ESSE_1']
+_classes = ['CIGA']
+# _classes = ['MIX_ETC', 'NGP', 'SOO_ETC', 'SOO', 'SOO_0.5', 'SOO_0.1', 'ESSE_0.5', 'FIIT_CHANGE', 'FIIT_UP', 'MIX_BANG', 
+#             'BOHEM_3',  'MIX_BLU',  'BOHEM_ETC',  'MIX_ICEAN',  'BOHEM_1',  'RAISON_FB',  'BOHEM_6',  'ETC',  
+#             'ESSE_ETC',  'ESSE_GOLD',  'ESSE_1']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
 
 if not osp.exists(output_dir):

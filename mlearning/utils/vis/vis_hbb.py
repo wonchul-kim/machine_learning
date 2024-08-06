@@ -110,11 +110,11 @@ def vis_hbb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
             
             
     for cls, pred in idx2xyxys.items():
-        for xyxy in pred['bbox']:
+        for xyxy, confidence in zip(pred['bbox'], pred['confidence']):
             points = np.array(xyxy, dtype=np.int32)
             cv2.rectangle(vis_hbb, (int(points[0][0]), int(points[0][1])), (int(points[1][0]), int(points[1][1])), 
                                   tuple(map(int, color_map[int(cls)])), line_width)
-            cv2.putText(vis_hbb, f"{idx2class[int(cls)]} {pred['confidence']:.2f}", get_text_coords(points, width, height), 
+            cv2.putText(vis_hbb, f"{idx2class[int(cls)]} {confidence:.2f}", get_text_coords(points, width, height), 
                         cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), line_width)
 
             if compare_gt:

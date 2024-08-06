@@ -20,8 +20,8 @@ def rotate_image(image, angle, center=None, scale=1.0):
     rotated = cv2.warpAffine(image, M, (new_w, new_h))
     return rotated, M
 
-input_dir = '/Data/01.Image/kt&g/24.07.17/bmp'
-output_dir = '/DeepLearning/_projects/kt_g/classification/split_dataset'
+input_dir = '/Data/01.Image/kt&g/24.08.05/0725_cls'
+output_dir = '/Data/01.Image/kt&g/24.08.05/0725_cls_crop'
 
 if not osp.exists(output_dir):
     os.mkdir(output_dir)
