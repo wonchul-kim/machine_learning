@@ -1,0 +1,9 @@
+path: /storage/projects/lx/split_dataset_yolo_seg
+train: images/train
+val: images/val
+test: 
+
+
+names: 
+  0: TIMBER
+  1: SCREW

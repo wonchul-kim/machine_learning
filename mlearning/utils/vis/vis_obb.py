@@ -47,7 +47,9 @@ def get_key_by_value(dictionary, value):
             return key
     return None
 
-def vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, compare_gt=False, iou_threshold=0.2, line_width=2, font_scale=1):
+def vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None, 
+            compare_gt=False, iou_threshold=0.2, line_width=2, font_scale=1,
+            output_img_ext='png', output_img_size_ratio=1):
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file)
@@ -148,7 +150,11 @@ def vis_obb(img_file, idx2xyxys, idx2class, output_dir, color_map, json_dir=None
         else:
             vis_res = cv2.hconcat([vis_img, vis_obb, vis_legend])
 
-    cv2.imwrite(osp.join(output_dir, filename + '.png'), vis_res)
+    if output_img_size_ratio == 1:
+        cv2.imwrite(osp.join(output_dir, filename + f'.{output_img_ext}'), vis_res)
+    else:
+        vis_res = cv2.resize(vis_res, (int(vis_res.shape[1]*output_img_size_ratio), int(vis_res.shape[0]*output_img_size_ratio)))
+        cv2.imwrite(osp.join(output_dir, filename + f'.{output_img_ext}'), vis_res)
     if compare_gt:
         ious = {}
         for gt_cls, gt_points in points_dict['gt'].items():
