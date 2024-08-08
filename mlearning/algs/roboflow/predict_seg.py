@@ -6,11 +6,11 @@ from ultralytics import YOLO
 import imgviz
 import json
 import pandas as pd
+from tqdm import tqdm
 from mlearning.utils.vis.vis_seg import vis_seg
 
 
-def predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compare_mask, font_scale=10):
-    _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
+def predict_seg(input_dir, json_dir, output_dir, nms_conf_threshold, nms_iou_threshold, _classes, compare_mask, font_scale=10, draw_rect=True):
 
     if not osp.exists(output_dir):
         os.makedirs(output_dir)
@@ -22,9 +22,9 @@ def predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compa
 
     preds = {}
     compare = {}
-    for img_file in img_files:
+    for img_file in tqdm(img_files):
         filename = osp.split(osp.splitext(img_file)[0])[-1]
-        result = model(img_file, save=False, imgsz=2048, conf=conf_threshold)[0]
+        result = model(img_file, save=False, imgsz=2048, conf=nms_conf_threshold, iou=nms_iou_threshold, verbose=False)[0]
         classes = result.boxes.cls.tolist()
         idx2class = result.names
         confs = result.boxes.conf.tolist()
@@ -42,6 +42,7 @@ def predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compa
             idx2masks[cls]['confidence'].append(conf)
             
         if _classes is not None:
+            _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
             new_idx2masks = {}
             for idx, _cls in enumerate(_classes):
                 for jdx, cls in enumerate(idx2class.values()):
@@ -55,11 +56,13 @@ def predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compa
         preds.update({filename: {'idx2masks': idx2masks, 'idx2class': idx2class, 'img_file': img_file}})
         
         if compare_mask:
-            _compare = vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, compare_mask=compare_mask, font_scale=font_scale)
+            _compare = vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, 
+                               compare_mask=compare_mask, font_scale=font_scale, draw_rect=draw_rect)
             _compare.update({"img_file": img_file})
             compare.update({filename: _compare})
         else:
-            vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, compare_mask=compare_mask, font_scale=font_scale)
+            vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir, 
+                    compare_mask=compare_mask, font_scale=font_scale, draw_rect=draw_rect)
                 
     with open(osp.join(output_dir, 'preds.json'), 'w', encoding='utf-8') as json_file:
         json.dump(preds, json_file, ensure_ascii=False, indent=4)
@@ -80,17 +83,18 @@ def predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compa
         
 if __name__ == '__main__':
     compare_mask = True
-    weights_file = "/DeepLearning/_projects/LX/wonchul/segment/train2/weights/best.pt"
+    weights_file = "/DeepLearning/_projects/LX/wonchul/240807/train/train/weights/best.pt"
     model = YOLO(weights_file) 
 
     image_ext = 'jpg'
     input_dir = '/Data/01.Image/LX/IMAGE/240807/easy/val'
     json_dir = '/Data/01.Image/LX/IMAGE/240807/easy/val'
-    output_dir = '/DeepLearning/_projects/LX/wonchul/iseg/240807/easy/val'
+    output_dir = '/DeepLearning/_projects/LX/wonchul/240807/test/easy/val'
 
-    conf_threshold = 0.1
-    font_scale = 2
-    _classes = ['TIMBER', 'SCREW']
-    draw_rect = False
+    nms_conf_threshold = 0.2
+    nms_iou_threshold = 0.25
+    font_scale = 1
+    _classes = ['SCREW', 'TIMBER']
+    draw_rect = True
 
-    predict_seg(input_dir, json_dir, output_dir, conf_threshold, _classes, compare_mask, font_scale=font_scale, draw_rect=draw_rect)
+    predict_seg(input_dir, json_dir, output_dir, nms_conf_threshold, nms_iou_threshold, _classes, compare_mask, font_scale=font_scale, draw_rect=draw_rect)

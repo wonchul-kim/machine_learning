@@ -48,6 +48,9 @@ def get_key_by_value(dictionary, value):
 
 def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None, compare_mask=True, 
             iou_threshold=0.2, font_scale=1, line_width=1, draw_rect=True):
+    idx2class = {0: 'TIMBER', 1: 'SCREW'}
+    
+    class2idx = {cls: idx for idx, cls in idx2class.items()}
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]
     img = cv2.imread(img_file)
@@ -110,29 +113,31 @@ def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None
         vis_gt = cv2.vconcat([text_gt, vis_gt])
             
             
-    for cls, pred in idx2masks.items():
-        for mask, box, conf in zip(pred['polygon'], pred['box'], pred['confidence']):
-            points = np.array(mask, dtype=np.int32)
-            if points.size != 0:
-                cv2.putText(vis_mask, f"{idx2class[int(cls)]} {conf:.2f}", 
-                            get_text_coords(points, width, height, offset_h=10), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
-                            tuple(map(int, color_map[int(cls)])), 3)
-                cv2.fillConvexPoly(vis_mask, points, color=tuple(map(int, color_map[int(cls)])))
-                # cv2.fillPoly(vis_mask, [points], color=tuple(map(int, color_map[int(cls)])))
-                if compare_mask:
-                    # cv2.putText(compr_pred_mask[idx2class[int(cls)]], f"{idx2class[int(cls)]}", get_text_coords(points, width, height, offset_h=30), cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), 3)
-                    cv2.fillConvexPoly(compr_pred_mask[idx2class[int(cls)]], points, color=1)
+    for idx, cls in idx2class.items():
+        if class2idx[cls] in idx2masks:
+            pred = idx2masks[class2idx[cls]]
+            for mask, box, conf in zip(pred['polygon'], pred['box'], pred['confidence']):
+                points = np.array(mask, dtype=np.int32)
+                if points.size != 0:
+                    cv2.putText(vis_mask, f"{cls} {conf:.2f}", 
+                                get_text_coords(points, width, height, offset_h=10), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
+                                tuple(map(int, color_map[int(idx)])), 3)
+                    cv2.fillConvexPoly(vis_mask, points, color=tuple(map(int, color_map[int(idx)])))
+                    # cv2.fillPoly(vis_mask, [points], color=tuple(map(int, color_map[int(idx)])))
+                    if compare_mask:
+                        # cv2.putText(compr_pred_mask[idx], f"{idx}", get_text_coords(points, width, height, offset_h=30), cv2.FONT_HERSHEY_SIMPLEX, font_scale, tuple(map(int, color_map[int(cls)])), 3)
+                        cv2.fillConvexPoly(compr_pred_mask[cls], points, color=1)
 
-                    if idx2class[int(cls)] in points_dict['pred']:
-                        points_dict['pred'][idx2class[int(cls)]].append(points.tolist())
-                    else:
-                        points_dict['pred'].update({idx2class[int(cls)]: [points.tolist()]})
-            
-            if draw_rect and len(box) != 0:
-                cv2.rectangle(vis_mask, (int(box[0][0]), int(box[0][1])), (int(box[1][0]), int(box[1][1])), 
-                                  tuple(map(int, color_map[int(cls)])), line_width + 1)
-                cv2.putText(vis_mask, label, get_text_coords(box, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
-                            tuple(map(int, color_map[int(cls)])), line_width)
+                        if cls in points_dict['pred']:
+                            points_dict['pred'][cls].append(points.tolist())
+                        else:
+                            points_dict['pred'].update({cls: [points.tolist()]})
+                
+                if draw_rect and len(box) != 0:
+                    cv2.rectangle(vis_mask, (int(box[0][0]), int(box[0][1])), (int(box[1][0]), int(box[1][1])), 
+                                    tuple(map(int, color_map[int(idx)])), line_width + 1)
+                    cv2.putText(vis_mask, label, get_text_coords(box, width, height), cv2.FONT_HERSHEY_SIMPLEX, font_scale, 
+                                tuple(map(int, color_map[int(idx)])), line_width)
 
     vis_img = cv2.vconcat([text_ori, img])
 
