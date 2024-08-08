@@ -48,8 +48,7 @@ def get_key_by_value(dictionary, value):
 
 def vis_seg(img_file, idx2masks, idx2class, output_dir, color_map, json_dir=None, compare_mask=True, 
             iou_threshold=0.2, font_scale=1, line_width=1, draw_rect=True):
-    idx2class = {0: 'TIMBER', 1: 'SCREW'}
-    
+   
     class2idx = {cls: idx for idx, cls in idx2class.items()}
     
     filename = osp.split(osp.splitext(img_file)[0])[-1]

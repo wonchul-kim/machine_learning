@@ -91,10 +91,10 @@ if __name__ == '__main__':
     json_dir = '/Data/01.Image/LX/IMAGE/240807/easy/val'
     output_dir = '/DeepLearning/_projects/LX/wonchul/240807/test/easy/val'
 
-    nms_conf_threshold = 0.2
-    nms_iou_threshold = 0.25
+    nms_conf_threshold = 0.1
+    nms_iou_threshold = 1
     font_scale = 1
-    _classes = ['SCREW', 'TIMBER']
-    draw_rect = True
+    _classes = ['TIMBER', 'SCREW']
+    draw_rect = False
 
     predict_seg(input_dir, json_dir, output_dir, nms_conf_threshold, nms_iou_threshold, _classes, compare_mask, font_scale=font_scale, draw_rect=draw_rect)
