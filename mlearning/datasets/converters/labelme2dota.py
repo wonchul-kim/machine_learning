@@ -7,10 +7,17 @@ from tqdm import tqdm
 from mlearning.datasets.converters.polygon2dota import polygon2dota_by_rotate
 
 def convert_labelme2dota(input_dir, output_dir, copy_image=True, image_ext='bmp'):
+    
+    assert osp.exists(input_dir), ValueError(f"There is no such input directory: {input_dir}")
+    assert osp.exists(output_dir), ValueError(f"There is no such output directory: {output_dir}")
+    
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
         
     folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
+    if len(folders) == 0:
+        folders = ['./']
+    print(f"There are {folders} folders at {input_dir}")
 
     for folder in folders:
         _output_label_dir = osp.join(output_dir, folder, 'labelTxt')

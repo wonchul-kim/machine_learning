@@ -8,15 +8,20 @@ from tqdm import tqdm
 
 
 
-def labelme2yolo_object_detection(input_dir, output_dir, copy_image, image_exts):
-
+def labelme2yolo_object_detection(input_dir, output_dir, copy_image, image_ext='bmp'):
+    
+    assert osp.exists(input_dir), ValueError(f"There is no such input directory: {input_dir}")
+    assert osp.exists(output_dir), ValueError(f"There is no such output directory: {output_dir}")
+    
     if not osp.exists(output_dir):
         os.mkdir(output_dir)
         
-    folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
-
     image_width, image_height = None, None
-
+    folders = [folder.split("/")[-1] for folder in glob.glob(osp.join(input_dir, "**")) if not osp.isfile(folder)]
+    if len(folders) == 0:
+        folders = ['./']
+    print(f"There are {folders} folders at {input_dir}")
+    
     class2idx = {}
     for folder in folders:
         _output_labels_dir = osp.join(output_dir, 'labels', folder)
