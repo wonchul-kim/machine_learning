@@ -123,7 +123,7 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
         dets = [det for det in detections if det[1] == _class]
         gts = [gt for gt in ground_truths if gt[1] == _class]
         
-        num_positive = len(gts) # len(tp) + len(tn)
+        num_gt = len(gts) # len(tp) + len(tn)
         
         dets = sorted(dets, key=lambda conf: conf[2], reverse=True) # descending by confidence
 
@@ -132,12 +132,10 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
         for key, val in gt_box_detected_map.items():
             gt_box_detected_map[key] = np.zeros(val)
             
-        num_gts_by_image = {}
         for det_index, det in enumerate(dets):
             
             # match dets and gts by image
             gt = [gt for gt in gts if gt[0] == det[0]]
-            num_gts_by_image.update({det[0]: len(gt)})
             
             max_iou = 0
             for gt_index, _gt in enumerate(gt):
@@ -166,24 +164,28 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             else:
                 fp[det_index] = 1
                 
-        for idx, (image_name, num_gt) in enumerate(num_gts_by_image.items()):
+        for idx, (image_name, _num_gt) in enumerate(gt_box_detected_map.items()):
+            num_gt = len(_num_gt)
             if image_name not in results_by_image:
                 results_by_image[image_name] = {}
                 
+            _tp = tp[idx] if len(tp) != 0 else 0
+            _fp = fp[idx] if len(fp) != 0 else 0
+                
             results_by_image[image_name].update({
                                                 _class: {
-                                                    'precision': tp[idx]/float(tp[idx] + fp[idx]),
-                                                    'recall': tp[idx]/float(num_gt),
-                                                    'TP': tp[idx],
-                                                    'FP': fp[idx],
-                                                    'FN': num_gt - tp[idx],
+                                                    'precision': _tp/float(_tp + _fp) if _tp + _fp != 0 else 0,
+                                                    'recall': _tp/float(num_gt),
+                                                    'TP': _tp,
+                                                    'FP': _fp,
+                                                    'FN': num_gt - _tp,
                                                 }
                                             })
 
         accumulated_tp = np.cumsum(tp)
         accumulated_fp = np.cumsum(fp)
         accumulated_precision = np.divide(accumulated_tp, (accumulated_tp + accumulated_fp))
-        accumulated_recall = accumulated_tp/num_positive
+        accumulated_recall = accumulated_tp/num_gt
                     
         if method.lower() == 'ap':
             [ap, mean_precision, mean_recall, ii] = calculateAveragePrecision(accumulated_recall, accumulated_precision)
@@ -199,15 +201,15 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             'AP' : ap,
             'interpolated precision' : mean_precision,
             'interpolated recall' : mean_recall,
-            'total positives' : num_positive,
+            'total gt' : num_gt,
             'total TP' : np.sum(tp),
             'total FP' : np.sum(fp),
-            'total FN' : num_positive - np.sum(tp),
+            'total FN' : num_gt - np.sum(tp),
         }
         
         results_by_class.append(result_by_class)
         
-    return results_by_class, results_by_image
+    return {'by_class': results_by_class, 'by_image': results_by_image, 'map': mAP(results_by_class)}
 
 
 
@@ -228,12 +230,7 @@ if __name__ == '__main__':
                      ['image2.png', 0, 1, (0, 0, 9, 9)], ['image2.png', 1, 1, (11, 11, 16, 16)], ['image2.png', 1, 1, (30, 30, 36, 36)], ['image2.png', 2, 1, (20, 20, 25, 25)]]
     iou_threhold = 0.3
     
-    ap_by_class, ap_by_image = get_average_precision(detections, ground_truths, classes, iou_threhold)
-    print(ap_by_class)
-    print(ap_by_image)
-    
-    num2class = {0.0 : "buffalo", 1.0 : "elephant", 2.0 : "rhino"}
-    for r in ap_by_class:
-        print("{:^8} AP : {}".format(num2class[r['class']], r['AP']))
-    print("---------------------------")
-    print(f"mAP : {mAP(ap_by_class)}")
+    ap = get_average_precision(detections, ground_truths, classes, iou_threhold)
+    print(ap['map'])
+    print(ap['by_class'])
+    print(ap['by_image'])
