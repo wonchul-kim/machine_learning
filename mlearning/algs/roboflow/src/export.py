@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from mlearning.algs.roboflow.utils.helpers import get_params
+from mlearning.algs.roboflow.utils.parsing import get_params
 
 def export(weights: str, target: str, params):
     

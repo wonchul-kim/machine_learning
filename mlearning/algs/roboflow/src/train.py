@@ -2,7 +2,7 @@ from typing import Union, Dict
 from ultralytics import YOLO, settings
 settings.update({'wandb': False})
 
-from mlearning.algs.roboflow.utils.helpers import get_cfg, get_params, get_weights
+from mlearning.algs.roboflow.utils.parsing import get_cfg, get_params, get_weights
 
 def train(task: str, model_name: str, backbone: str, data: str, cfg: Union[str, Dict], params: Union[str, Dict]):
 
