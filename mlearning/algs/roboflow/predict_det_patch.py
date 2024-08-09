@@ -17,15 +17,19 @@ model = YOLO(weights_file)
 # json_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/w_json/학습'
 # output_dir = '/DeepLearning/_projects/sungjin_body/tests/yolov8_patch_v2/winter/w_json/학습'
 
-input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/학습'
+# input_dir = '/Data/01.Image/sungjin_yoke/IMAGE/BODY/24.07.29_미검이미지/wo_json/학습'
+# json_dir = None
+# output_dir = '/DeepLearning/_projects/sungjin_body/tests/yolov8_patch_v2/winter/wo_json/학습'
+
+input_dir = '/DeepLearning/_projects/sungjin_body/etc/images1'
 json_dir = None
-output_dir = '/DeepLearning/_projects/sungjin_body/tests/yolov8_patch_v2/winter/wo_json/학습'
+output_dir = '/DeepLearning/_projects/sungjin_body/etc/pred1'
 
 compare_gt = True if json_dir is not None else False
 imgsz = 1024
 line_width = 5
 font_scale = 2
-conf_threshold = 0.2
+conf_threshold = 0.1
 iou_threshold = 0.5
 _classes = ['STABBED', 'QR', 'CRACK', 'RUST', 'SCRATCH', 'PRESSED', 'BOTTOM']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
