@@ -1,6 +1,9 @@
 import numpy as np
 from collections import Counter
 
+
+# https://github.com/rafaelpadilla/review_object_detection_metrics?tab=readme-ov-file#ap-with-iou-threshold-t05
+
 def is_overlapped(box_1, box_2):
     if box_1[0] > box_2[2]:
         return False
