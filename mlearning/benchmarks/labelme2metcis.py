@@ -28,7 +28,11 @@ def labelme2metrics(input_dir, return_class2idx=True):
                 if shape_type == 'rectangle':
                     assert len(points) == 2 and len(points[0]) == 2, ValueError(f"ERROR: points are wrong: {points} at {json_file}")
                     
-                    gt = [filename, class2idx[label], 1, (points[0][0], points[0][1], points[1][0], points[1][1])]
+                    gt = [filename, class2idx[label], 1, (min(points[0][0], points[1][0]),
+                                                          min(points[0][1], points[1][1]), 
+                                                          max(points[0][0], points[1][0]),
+                                                          max(points[0][1], points[1][1]))
+                        ]
                     gts.append(gt)          
                     
         if len(gts) != num_labelme_label:

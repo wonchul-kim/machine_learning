@@ -85,10 +85,34 @@ def ElevenPointInterpolatedAP(rec, prec):
 def mAP(result):
     ap = 0
     for r in result:
-        ap += r['AP']
+        ap += r['ap']
     mAP = ap / len(result)
     
     return mAP
+
+def get_average_g_results(g_results):
+    result = {}
+    total_avg_g_fnr, total_avg_g_fpr = 0, 0
+    cnt = 0
+    for image_name, g_result in g_results.items():
+        avg_g_fnr, avg_g_fpr = 0, 0
+        for key, val in g_result.items():
+            avg_g_fnr += val['g_fnr']
+            avg_g_fpr += val['g_fpr']
+            cnt += 1
+        total_avg_g_fnr += avg_g_fnr
+        total_avg_g_fpr += avg_g_fpr
+        result[image_name] = {'avg_g_fnr': avg_g_fnr/len(g_results), 
+                              'avg_g_fpr': avg_g_fpr/len(g_results)
+                             }
+        
+    result['total_avg_g_fnr'] = total_avg_g_fnr/cnt
+    result['total_avg_g_fpr'] = total_avg_g_fpr/cnt
+    
+    return result
+        
+        
+        
 
 def calculateAveragePrecision(rec, prec):
     
@@ -118,6 +142,7 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
     
     results_by_class = []
     results_by_image = {}
+    g_results = {}
     # loop by each class for all images
     for _class in classes:
         
@@ -151,12 +176,14 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
                     max_iou = iou 
                     max_gt_index = gt_index
                     
+                # for g_results -----------------------------------------
                 if iou >= iou_threhold:
                     g_tp[det_index] = 1
                 else:
                     g_fp[det_index] = 1
             
             g_fp = np.array([max(0, d) for d in g_fp - g_tp])
+            # -----------------------------------------------------------
                     
             if max_iou >= iou_threhold:
                 '''
@@ -178,6 +205,7 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             num_gt = len(_num_gt)
             if image_name not in results_by_image:
                 results_by_image[image_name] = {}
+                g_results[image_name] = {}
                 
             _tp = np.sum(tp) if len(tp) != 0 else 0
             _fp = np.sum(fp) if len(fp) != 0 else 0
@@ -186,16 +214,24 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
                                                 _class: {
                                                     'precision': _tp/float(_tp + _fp) if _tp + _fp != 0 else 0,
                                                     'recall': _tp/float(num_gt),
-                                                    'total gt': num_gt,
-                                                    'TP': _tp,
-                                                    'FP': _fp,
-                                                    'FN': num_gt - _tp,
-                                                    'g-TP': np.sum(g_tp) if len(g_tp) != 0 else 0,
-                                                    'g-FP': np.sum(g_fp) if len(g_fp) != 0 else 0,
-                                                    'g-FN': np.sum(_num_gt==0),
-                                                    'g-FPR': np.sum(_num_gt==0)/num_gt if num_gt != 0 else 0
+                                                    'total_gt': num_gt,
+                                                    'tp': _tp,
+                                                    'fp': _fp,
+                                                    'fn': num_gt - _tp
                                                 }
                                             })
+            
+            # for g_results ---------------------------------------------------------------------------------------
+            g_results[image_name].update({
+                                                _class: {
+                                                    'g_tp': np.sum(g_tp) if len(g_tp) != 0 else 0,
+                                                    'g_fp': np.sum(g_fp) if len(g_fp) != 0 else 0,
+                                                    'g_fn': np.sum(_num_gt==0),
+                                                    'g_fnr': np.sum(_num_gt==0)/num_gt if num_gt != 0 else 0,
+                                                    'g_fpr': np.sum(g_fp)/(np.sum(g_tp) +np.sum(g_fp)) if (np.sum(g_tp) +np.sum(g_fp)) != 0 else 0,
+                                                }
+                                            })
+            # -----------------------------------------------------------------------------------------------------
 
         accumulated_tp = np.cumsum(tp)
         accumulated_fp = np.cumsum(fp)
@@ -213,18 +249,18 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             'accumulated_recall' : accumulated_recall,
             'precision': accumulated_precision[-1] if len(accumulated_precision) != 0 else 0,
             'recall': accumulated_recall[-1] if len(accumulated_recall) != 0 else 0,
-            'AP' : ap,
-            'interpolated precision' : mean_precision,
-            'interpolated recall' : mean_recall,
-            'total gt' : num_gt,
-            'total TP' : np.sum(tp),
-            'total FP' : np.sum(fp),
-            'total FN' : num_gt - np.sum(tp),
+            'ap' : ap,
+            'interpolated_precision' : mean_precision,
+            'interpolated_recall' : mean_recall,
+            'total_gt' : num_gt,
+            'total_tp' : np.sum(tp),
+            'total_fp' : np.sum(fp),
+            'total_fn' : num_gt - np.sum(tp),
         }
         
         results_by_class.append(result_by_class)
         
-    return {'by_class': results_by_class, 'by_image': results_by_image, 'map': mAP(results_by_class)}
+    return {'by_class': results_by_class, 'by_image': results_by_image, 'map': mAP(results_by_class), 'g_results': g_results}
 
 
 

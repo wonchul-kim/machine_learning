@@ -21,9 +21,9 @@ model = YOLO(weights_file)
 # json_dir = None
 # output_dir = '/DeepLearning/_projects/sungjin_body/tests/yolov8_patch_v2/winter/wo_json/학습'
 
-input_dir = '/DeepLearning/_projects/sungjin_body/benchmark/data'
-json_dir = '/DeepLearning/_projects/sungjin_body/benchmark/data'
-output_dir = '/DeepLearning/_projects/sungjin_body/benchmark/output'
+input_dir = '/DeepLearning/_projects/sungjin_body/benchmark/24.08.12'
+json_dir = '/DeepLearning/_projects/sungjin_body/benchmark/24.08.12'
+output_dir = '/DeepLearning/_projects/sungjin_body/benchmark/preds'
 
 compare_gt = True if json_dir is not None else False
 imgsz = 1024
