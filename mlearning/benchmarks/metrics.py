@@ -129,6 +129,7 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
         
         dets = sorted(dets, key=lambda conf: conf[2], reverse=True) # descending by confidence
 
+        g_tp, g_fp = np.zeros(len(dets)), np.zeros(len(dets))
         tp, fp = np.zeros(len(dets)), np.zeros(len(dets))
         gt_box_detected_map = Counter(c[0] for c in gts) # number of gt-boxes by image
         for key, val in gt_box_detected_map.items():
@@ -149,6 +150,13 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
                 if iou > max_iou:
                     max_iou = iou 
                     max_gt_index = gt_index
+                    
+                if iou >= iou_threhold:
+                    g_tp[det_index] = 1
+                else:
+                    g_fp[det_index] = 1
+            
+            g_fp = np.array([max(0, d) for d in g_fp - g_tp])
                     
             if max_iou >= iou_threhold:
                 '''
@@ -171,16 +179,21 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             if image_name not in results_by_image:
                 results_by_image[image_name] = {}
                 
-            _tp = tp[idx] if len(tp) != 0 else 0
-            _fp = fp[idx] if len(fp) != 0 else 0
+            _tp = np.sum(tp) if len(tp) != 0 else 0
+            _fp = np.sum(fp) if len(fp) != 0 else 0
                 
             results_by_image[image_name].update({
                                                 _class: {
                                                     'precision': _tp/float(_tp + _fp) if _tp + _fp != 0 else 0,
                                                     'recall': _tp/float(num_gt),
+                                                    'total gt': num_gt,
                                                     'TP': _tp,
                                                     'FP': _fp,
                                                     'FN': num_gt - _tp,
+                                                    'g-TP': np.sum(g_tp) if len(g_tp) != 0 else 0,
+                                                    'g-FP': np.sum(g_fp) if len(g_fp) != 0 else 0,
+                                                    'g-FN': np.sum(_num_gt==0),
+                                                    'g-FPR': np.sum(_num_gt==0)/num_gt if num_gt != 0 else 0
                                                 }
                                             })
 
