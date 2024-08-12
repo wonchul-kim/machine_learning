@@ -1,12 +1,14 @@
 import os.path as osp
 import glob 
 import json
+import warnings
 
 def labelme2metrics(input_dir, return_class2idx=True):
     json_files = glob.glob(osp.join(input_dir, '*.json'))
 
     gts = []
     class2idx = {}
+    num_labelme_label = 0
     for json_file in json_files:
         
         with open(json_file, 'r') as jf:
@@ -18,6 +20,7 @@ def labelme2metrics(input_dir, return_class2idx=True):
                 shape_type = ann['shape_type']
                 points = ann['points']
                 label = ann['label']
+                num_labelme_label += 1
                 
                 if label not in class2idx:
                     class2idx[label] = len(class2idx)
@@ -26,8 +29,11 @@ def labelme2metrics(input_dir, return_class2idx=True):
                     assert len(points) == 2 and len(points[0]) == 2, ValueError(f"ERROR: points are wrong: {points} at {json_file}")
                     
                     gt = [filename, class2idx[label], 1, (points[0][0], points[0][1], points[1][0], points[1][1])]
-            
-            gts.append(gt)                    
+                    gts.append(gt)          
+                    
+        if len(gts) != num_labelme_label:
+            warnings.warn(f"The number of lableme label({num_labelme_label}) is not same to the number of metrics label({len(gts)})")    
+                              
 
     if return_class2idx:
         return gts, class2idx
