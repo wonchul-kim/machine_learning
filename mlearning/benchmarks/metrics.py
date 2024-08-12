@@ -228,9 +228,9 @@ if __name__ == '__main__':
                   ['image2.png', 0, 1, (3, 3, 8, 8)], ['image2.png', 1, 1, (10, 10, 15, 15)]]
     ground_truths = [['image1.png', 0, 1, (0, 0, 9, 9)], ['image1.png', 1, 1, (11, 11, 16, 16)], ['image1.png', 1, 1, (30, 30, 36, 36)], ['image1.png', 2, 1, (20, 20, 25, 25)], 
                      ['image2.png', 0, 1, (0, 0, 9, 9)], ['image2.png', 1, 1, (11, 11, 16, 16)], ['image2.png', 1, 1, (30, 30, 36, 36)], ['image2.png', 2, 1, (20, 20, 25, 25)]]
-    iou_threhold = 0.3
+    iou_threshold = 0.3
     
-    ap = get_average_precision(detections, ground_truths, classes, iou_threhold)
+    ap = get_average_precision(detections, ground_truths, classes, iou_threshold)
     print(ap['map'])
     print(ap['by_class'])
     print(ap['by_image'])
