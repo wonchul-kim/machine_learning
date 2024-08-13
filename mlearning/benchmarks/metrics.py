@@ -167,7 +167,7 @@ def calculateAveragePrecision(rec, prec):
     
     return [ap, mpre[0:len(mpre)-1], mrec[0:len(mpre)-1], ii]
 
-def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method='ap'):
+def get_performance(detections, ground_truths, classes, iou_threshold=0.3, method='ap'):
     '''
         detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
         ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
@@ -214,12 +214,13 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
                     max_iou = iou 
                     max_gt_index = gt_index
                     
-            if iou != 0 and iou >= iou_threshold:
-                results_by_image[det[0]][_class]['tp'] += 1
-            else:
+                if iou >= iou_threshold:
+                    results_by_image[det[0]][_class]['tp'] += 1
+                
+            if results_by_image[det[0]][_class]['tp'] == 0:
                 results_by_image[det[0]][_class]['fp'] += 1
-                    
-            if max_iou >= iou_threhold:
+                
+            if max_iou >= iou_threshold:
                 '''
                     * tp: 
                         - bigger than iou-threhold 
@@ -235,7 +236,8 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
             else:
                 fp[det_index] = 1
                 
-                
+            if len(gt_box_detected_map) != 0:
+                results_by_image[det[0]][_class]['fn'] = len(gt_box_detected_map[det[0]]) - np.sum(gt_box_detected_map[det[0]])
         
         accumulated_tp = np.cumsum(tp)
         accumulated_fp = np.cumsum(fp)
@@ -263,7 +265,8 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
         }
         
         results_by_class.append(result_by_class)
-        
+        # results_by_image[det[0]][_class]['fn'] = num_gt - np.sum(tp)
+
     results_by_image = update_ap_by_image(results_by_image)
     results_by_class.append({'map': mAP(results_by_class)})
         

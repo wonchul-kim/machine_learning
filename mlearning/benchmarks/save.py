@@ -1,7 +1,9 @@
-def save_df_by_class_to_pdf(performacne_by_class, map, output_filename):
+def save_df_by_class_to_pdf(performance_by_class, output_filename):
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.platypus import SimpleDocTemplate, Paragraph
+    from reportlab.lib import colors
+    from reportlab.lib.units import inch
 
     # PDF 생성
     document = SimpleDocTemplate(output_filename, pagesize=letter)
@@ -14,12 +16,15 @@ def save_df_by_class_to_pdf(performacne_by_class, map, output_filename):
     content.append(Paragraph('Performances', styles['Title']))
 
     # 데이터 추가
-    for key, value in performacne_by_class.items():
-        if isinstance(value, list):
-            value_str = ', '.join(map(str, value))
-        else:
-            value_str = str(value)
-        content.append(Paragraph(f'{key}: {value_str}', styles['BodyText']))
+    for data in performance_by_class:
+        for key, value in data.items():
+            if isinstance(value, list):
+                value_str = ', '.join(map(str, value))
+            else:
+                value_str = str(value)
+            content.append(Paragraph(f'{key}: {value_str}', styles['BodyText']))
+
+        content.append(Paragraph('<br/><br/>', styles['Normal']))  # 추가적인 여백
 
     # PDF 생성
     document.build(content)
@@ -129,7 +134,7 @@ def save_pf_by_image_to_excel(performance_by_image, output_filename):
 if __name__ == '__main__':
     
     # 데이터 정의 (예제 데이터)
-    performacne_by_class = {
+    performance_by_class = {
         'class': 'Class A',
         'accumulated_precision': [0.8, 0.85, 0.9],
         'accumulated_recall': [0.7, 0.75, 0.8],
@@ -145,4 +150,4 @@ if __name__ == '__main__':
     }
     output_filename = '/HDD/datasets/projects/sungjin/body/benchmark/pf_by_class.pdf'
     
-    save_df_by_class_to_pdf(performacne_by_class, output_filename)
+    save_df_by_class_to_pdf(performance_by_class, output_filename)

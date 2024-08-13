@@ -1,7 +1,7 @@
 from mlearning.benchmarks.labelme2metcis import labelme2metrics
 from mlearning.benchmarks.preds2metrics import preds2metrics
 from mlearning.benchmarks.metrics import get_performance
-from mlearning.benchmarks.save import save_pf_by_image_to_excel
+from mlearning.benchmarks.save import save_pf_by_image_to_excel, save_df_by_class_to_pdf
 import os.path as osp
 
 output_dir = '/HDD/datasets/projects/sungjin/body/benchmark'
@@ -10,7 +10,7 @@ input_dir = '/HDD/datasets/projects/sungjin/body/benchmark/24.08.12'
 ground_truths, class2idx = labelme2metrics(input_dir)
 print(class2idx)
 
-preds_json = '/HDD/datasets/projects/sungjin/body/benchmark/preds/preds.json'
+preds_json = '/HDD/datasets/projects/sungjin/body/benchmark/preds.json'
 detections, class2idx = preds2metrics(preds_json, class2idx)
 print(class2idx)
 
@@ -30,11 +30,10 @@ classes = class2idx.values()
 
 pf = get_performance(detections, ground_truths, classes, iou_threshold)
 pf_by_image = pf['by_image']
-pf_map = pf['map']
 pf_by_class = pf['by_class']
 
 print('* by image: ', pf['by_image'])
-print('* map: ', pf['map'])
 print('* by class: ', pf['by_class'])
 
 save_pf_by_image_to_excel(pf_by_image, osp.join(output_dir, 'pf_by_image.xlsx'))
+save_df_by_class_to_pdf(pf_by_class, osp.join(output_dir, 'pf_by_class.pdf'))
