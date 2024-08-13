@@ -102,8 +102,8 @@ def get_average_g_results(g_results):
             cnt += 1
         total_avg_g_fnr += avg_g_fnr
         total_avg_g_fpr += avg_g_fpr
-        result[image_name] = {'avg_g_fnr': avg_g_fnr/len(g_results), 
-                              'avg_g_fpr': avg_g_fpr/len(g_results)
+        result[image_name] = {'avg_g_fnr': avg_g_fnr/len(val), 
+                              'avg_g_fpr': avg_g_fpr/len(val)
                              }
         
     result['total_avg_g_fnr'] = total_avg_g_fnr/cnt
@@ -134,15 +134,13 @@ def calculateAveragePrecision(rec, prec):
     
     return [ap, mpre[0:len(mpre)-1], mrec[0:len(mpre)-1], ii]
 
-def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, method='ap'):
+def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3, method='ap'):
     '''
         detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
         ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
     '''
     
     results_by_class = []
-    results_by_image = {}
-    g_results = {}
     # loop by each class for all images
     for _class in classes:
         
@@ -154,7 +152,6 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
         
         dets = sorted(dets, key=lambda conf: conf[2], reverse=True) # descending by confidence
 
-        g_tp, g_fp = np.zeros(len(dets)), np.zeros(len(dets))
         tp, fp = np.zeros(len(dets)), np.zeros(len(dets))
         gt_box_detected_map = Counter(c[0] for c in gts) # number of gt-boxes by image
         for key, val in gt_box_detected_map.items():
@@ -176,15 +173,6 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
                     max_iou = iou 
                     max_gt_index = gt_index
                     
-                # for g_results -----------------------------------------
-                if iou >= iou_threhold:
-                    g_tp[det_index] = 1
-                else:
-                    g_fp[det_index] = 1
-            
-            g_fp = np.array([max(0, d) for d in g_fp - g_tp])
-            # -----------------------------------------------------------
-                    
             if max_iou >= iou_threhold:
                 '''
                     * tp: 
@@ -201,42 +189,11 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
             else:
                 fp[det_index] = 1
                 
-        for idx, (image_name, _num_gt) in enumerate(gt_box_detected_map.items()):
-            num_gt = len(_num_gt)
-            if image_name not in results_by_image:
-                results_by_image[image_name] = {}
-                g_results[image_name] = {}
-                
-            _tp = np.sum(tp) if len(tp) != 0 else 0
-            _fp = np.sum(fp) if len(fp) != 0 else 0
-                
-            results_by_image[image_name].update({
-                                                _class: {
-                                                    'precision': _tp/float(_tp + _fp) if _tp + _fp != 0 else 0,
-                                                    'recall': _tp/float(num_gt),
-                                                    'total_gt': num_gt,
-                                                    'tp': _tp,
-                                                    'fp': _fp,
-                                                    'fn': num_gt - _tp
-                                                }
-                                            })
-            
-            # for g_results ---------------------------------------------------------------------------------------
-            g_results[image_name].update({
-                                                _class: {
-                                                    'g_tp': np.sum(g_tp) if len(g_tp) != 0 else 0,
-                                                    'g_fp': np.sum(g_fp) if len(g_fp) != 0 else 0,
-                                                    'g_fn': np.sum(_num_gt==0),
-                                                    'g_fnr': np.sum(_num_gt==0)/num_gt if num_gt != 0 else 0,
-                                                    'g_fpr': np.sum(g_fp)/(np.sum(g_tp) +np.sum(g_fp)) if (np.sum(g_tp) +np.sum(g_fp)) != 0 else 0,
-                                                }
-                                            })
-            # -----------------------------------------------------------------------------------------------------
-
+        
         accumulated_tp = np.cumsum(tp)
         accumulated_fp = np.cumsum(fp)
         accumulated_precision = np.divide(accumulated_tp, (accumulated_tp + accumulated_fp))
-        accumulated_recall = accumulated_tp/num_gt
+        accumulated_recall = accumulated_tp/num_gt if num_gt != 0 else accumulated_tp
                     
         if method.lower() == 'ap':
             [ap, mean_precision, mean_recall, ii] = calculateAveragePrecision(accumulated_recall, accumulated_precision)
@@ -260,9 +217,16 @@ def get_average_precision(detections, ground_truths, classes, iou_threhold=0.3, 
         
         results_by_class.append(result_by_class)
         
-    return {'by_class': results_by_class, 'by_image': results_by_image, 'map': mAP(results_by_class), 'g_results': g_results}
+    return results_by_class, mAP(results_by_class)
 
 
+def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3):
+    '''
+        detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
+        ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
+    '''
+    pass
+    
 
 if __name__ == '__main__':
     
@@ -281,7 +245,7 @@ if __name__ == '__main__':
                      ['image2.png', 0, 1, (0, 0, 9, 9)], ['image2.png', 1, 1, (11, 11, 16, 16)], ['image2.png', 1, 1, (30, 30, 36, 36)], ['image2.png', 2, 1, (20, 20, 25, 25)]]
     iou_threshold = 0.3
     
-    ap = get_average_precision(detections, ground_truths, classes, iou_threshold)
+    ap = get_ap_by_class(detections, ground_truths, classes, iou_threshold)
     print(ap['map'])
     print(ap['by_class'])
     print(ap['by_image'])

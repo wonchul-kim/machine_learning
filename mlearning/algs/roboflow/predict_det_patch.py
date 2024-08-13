@@ -72,7 +72,7 @@ for img_file in tqdm(img_files):
                 x = x0
 
             xmin, xmax, ymin, ymax = x, x + patch_width, y, y + patch_height
-            pred = model(image[ymin:ymax, xmin:xmax, :], save=False, imgsz=imgsz, conf=conf_threshold)[0]
+            pred = model(image[ymin:ymax, xmin:xmax, :], save=False, imgsz=imgsz, conf=conf_threshold, verbose=False)[0]
     
             idx2class = pred.names
             boxes = pred.boxes
