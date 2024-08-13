@@ -123,14 +123,24 @@ def update_ap_by_image(results_by_image):
                 results.update({'fpr': fpr, 'fnr': fnr})
                 
                 if _class not in overall_by_class:
-                    overall_by_class[_class] = {'fpr': [], 'fnr': []}
+                    overall_by_class[_class] = {'fpr': [], 'fnr': [], 'tp': [], 'fp': [], 'fn': [], 'tn': [], 'total_gt': []}
                     
                 overall_by_class[_class]['fpr'].append(fpr)
                 overall_by_class[_class]['fnr'].append(fnr)
+                overall_by_class[_class]['tp'].append(results['tp'])
+                overall_by_class[_class]['fp'].append(results['fp'])
+                overall_by_class[_class]['fn'].append(results['fn'])
+                overall_by_class[_class]['tn'].append(results['tn'])
+                overall_by_class[_class]['total_gt'].append(results['total_gt'])
                 
         for key, val in overall_by_class.items():
             overall_by_class[key]['fpr'] = np.mean(overall_by_class[key]['fpr'])
             overall_by_class[key]['fnr'] = np.mean(overall_by_class[key]['fnr'])
+            overall_by_class[key]['tp'] = np.sum(overall_by_class[key]['tp'])
+            overall_by_class[key]['fp'] = np.sum(overall_by_class[key]['fp'])
+            overall_by_class[key]['fn'] = np.sum(overall_by_class[key]['fn'])
+            overall_by_class[key]['tn'] = np.sum(overall_by_class[key]['tn'])
+            overall_by_class[key]['total_gt'] = np.sum(overall_by_class[key]['total_gt'])
                 
     results_by_image['overall'] = overall_by_class
     
@@ -193,7 +203,7 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
                 if _class not in results_by_image[det[0]]:
                     results_by_image[det[0]].update({_class: {'tp': 0, 'fp': 0, 'fn': 0, 'tn': 0, 'total_gt': len(gt)}})
 
-            max_iou = 0
+            max_iou, iou = 0, 0
             for gt_index, _gt in enumerate(gt):
                 '''
                     Within the same image, compare all gt-boxes for each det-box and then, calculate iou.
@@ -203,6 +213,11 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
                 if iou > max_iou:
                     max_iou = iou 
                     max_gt_index = gt_index
+                    
+            if iou != 0 and iou >= iou_threshold:
+                results_by_image[det[0]][_class]['tp'] += 1
+            else:
+                results_by_image[det[0]][_class]['fp'] += 1
                     
             if max_iou >= iou_threhold:
                 '''
@@ -217,10 +232,9 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
                     gt_box_detected_map[det[0]][max_gt_index] = 1
                 else:
                     fp[det_index] = 1
-                results_by_image[det[0]][_class]['tp'] += 1
             else:
                 fp[det_index] = 1
-                results_by_image[det[0]][_class]['fp'] += 1
+                
                 
         
         accumulated_tp = np.cumsum(tp)
@@ -251,29 +265,8 @@ def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method
         results_by_class.append(result_by_class)
         
     results_by_image = update_ap_by_image(results_by_image)
+    results_by_class.append({'map': mAP(results_by_class)})
         
-    return {'by_class': results_by_class, 'map': mAP(results_by_class), 
-            'by_image': results_by_image}
+        
+    return {'by_class': results_by_class, 'by_image': results_by_image}
 
-
-if __name__ == '__main__':
-    
-    # test iou
-    box_1 = [0, 0, 5, 5]
-    box_2 = [4, 4, 8, 8]
-    
-    iou = get_iou(box_1, box_2)
-    print(iou)
-    
-    # test ap (class-index, confidence, x1, y1, x2, y2)
-    classes = [0, 1, 2]
-    detections = [['image1.png', 0, 1, (3, 3, 8, 8)], ['image1.png', 1, 1, (10, 10, 15, 15)], 
-                  ['image2.png', 0, 1, (3, 3, 8, 8)], ['image2.png', 1, 1, (10, 10, 15, 15)]]
-    ground_truths = [['image1.png', 0, 1, (0, 0, 9, 9)], ['image1.png', 1, 1, (11, 11, 16, 16)], ['image1.png', 1, 1, (30, 30, 36, 36)], ['image1.png', 2, 1, (20, 20, 25, 25)], 
-                     ['image2.png', 0, 1, (0, 0, 9, 9)], ['image2.png', 1, 1, (11, 11, 16, 16)], ['image2.png', 1, 1, (30, 30, 36, 36)], ['image2.png', 2, 1, (20, 20, 25, 25)]]
-    iou_threshold = 0.3
-    
-    ap = get_ap_by_class(detections, ground_truths, classes, iou_threshold)
-    print(ap['map'])
-    print(ap['by_class'])
-    print(ap['by_image'])

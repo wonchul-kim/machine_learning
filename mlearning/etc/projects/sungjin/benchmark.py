@@ -4,25 +4,25 @@ from mlearning.benchmarks.metrics import get_performance
 from mlearning.benchmarks.save import save_pf_by_image_to_excel
 import os.path as osp
 
-output_dir = '/DeepLearning/_projects/sungjin_body/benchmark/'
+output_dir = '/HDD/datasets/projects/sungjin/body/benchmark'
 
-input_dir = '/DeepLearning/_projects/sungjin_body/benchmark/24.08.12'
+input_dir = '/HDD/datasets/projects/sungjin/body/benchmark/24.08.12'
 ground_truths, class2idx = labelme2metrics(input_dir)
 print(class2idx)
 
-preds_json = '/DeepLearning/_projects/sungjin_body/benchmark/preds/preds.json'
+preds_json = '/HDD/datasets/projects/sungjin/body/benchmark/preds/preds.json'
 detections, class2idx = preds2metrics(preds_json, class2idx)
 print(class2idx)
 
-# _detections, _ground_truths = [], []
-# for detection in detections:
-#     if detection[0] == '124080711064364_54_BODY':
-#         _detections.append(detection)
-# for ground_truth in ground_truths:
-#     if ground_truth[0] == '124080711064364_54_BODY':
-#         _ground_truths.append(ground_truth)
-# detections = _detections
-# ground_truths = _ground_truths
+_detections, _ground_truths = [], []
+for detection in detections:
+    if detection[0] == '124080701581332_54_BODY':
+        _detections.append(detection)
+for ground_truth in ground_truths:
+    if ground_truth[0] == '124080701581332_54_BODY':
+        _ground_truths.append(ground_truth)
+detections = _detections
+ground_truths = _ground_truths
 
 
 iou_threshold = 0.1

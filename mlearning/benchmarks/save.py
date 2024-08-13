@@ -1,10 +1,35 @@
-import pandas as pd
-from openpyxl import load_workbook
-from openpyxl.styles import PatternFill, Border, Side, Alignment
+def save_df_by_class_to_pdf(performacne_by_class, map, output_filename):
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import SimpleDocTemplate, Paragraph
+
+    # PDF 생성
+    document = SimpleDocTemplate(output_filename, pagesize=letter)
+    styles = getSampleStyleSheet()
+
+    # 데이터 직접 PDF에 추가
+    content = []
+
+    # 제목 추가
+    content.append(Paragraph('Performances', styles['Title']))
+
+    # 데이터 추가
+    for key, value in performacne_by_class.items():
+        if isinstance(value, list):
+            value_str = ', '.join(map(str, value))
+        else:
+            value_str = str(value)
+        content.append(Paragraph(f'{key}: {value_str}', styles['BodyText']))
+
+    # PDF 생성
+    document.build(content)
 
 
 def save_pf_by_image_to_excel(performance_by_image, output_filename):
-
+    import pandas as pd
+    from openpyxl import load_workbook
+    from openpyxl.styles import PatternFill, Border, Side, Alignment
+    
     # 데이터를 정리하여 리스트로 변환
     rows = []
 
@@ -99,3 +124,25 @@ def save_pf_by_image_to_excel(performance_by_image, output_filename):
 
     # 엑셀 파일 저장
     workbook.save(output_filename)
+    
+    
+if __name__ == '__main__':
+    
+    # 데이터 정의 (예제 데이터)
+    performacne_by_class = {
+        'class': 'Class A',
+        'accumulated_precision': [0.8, 0.85, 0.9],
+        'accumulated_recall': [0.7, 0.75, 0.8],
+        'precision': 0.9,
+        'recall': 0.8,
+        'ap': 0.85,
+        'interpolated_precision': [0.8, 0.85, 0.9],
+        'interpolated_recall': [0.7, 0.75, 0.8],
+        'total_gt': 100,
+        'total_tp': 80,
+        'total_fp': 10,
+        'total_fn': 20,
+    }
+    output_filename = '/HDD/datasets/projects/sungjin/body/benchmark/pf_by_class.pdf'
+    
+    save_df_by_class_to_pdf(performacne_by_class, output_filename)
