@@ -112,7 +112,30 @@ def get_average_g_results(g_results):
     return result
         
         
-        
+def update_ap_by_image(results_by_image):
+    
+    overall_by_class = {}
+    if len(results_by_image) != 0:
+        for image_name, val in results_by_image.items():
+            for _class, results in val.items():
+                fpr = results['fp']/(results['tp'] + results['fp'] + 1e-5)
+                fnr = results['fn']/(results['tp'] + results['fn'] + 1e-5)
+                results.update({'fpr': fpr, 'fnr': fnr})
+                
+                if _class not in overall_by_class:
+                    overall_by_class[_class] = {'fpr': [], 'fnr': []}
+                    
+                overall_by_class[_class]['fpr'].append(fpr)
+                overall_by_class[_class]['fnr'].append(fnr)
+                
+        for key, val in overall_by_class.items():
+            overall_by_class[key]['fpr'] = np.mean(overall_by_class[key]['fpr'])
+            overall_by_class[key]['fnr'] = np.mean(overall_by_class[key]['fnr'])
+                
+    results_by_image['overall'] = overall_by_class
+    
+    return results_by_image
+    _
 
 def calculateAveragePrecision(rec, prec):
     
@@ -134,13 +157,14 @@ def calculateAveragePrecision(rec, prec):
     
     return [ap, mpre[0:len(mpre)-1], mrec[0:len(mpre)-1], ii]
 
-def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3, method='ap'):
+def get_performance(detections, ground_truths, classes, iou_threhold=0.3, method='ap'):
     '''
         detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
         ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
     '''
     
     results_by_class = []
+    results_by_image = {}
     # loop by each class for all images
     for _class in classes:
         
@@ -162,6 +186,13 @@ def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3, method
             # match dets and gts by image
             gt = [gt for gt in gts if gt[0] == det[0]]
             
+            if det[0] not in results_by_image:
+                results_by_image[det[0]] = {_class: {'tp': 0, 'fp': 0, 'fn': 0, 'tn': 0, 'total_gt': len(gt)}}
+            
+            else: 
+                if _class not in results_by_image[det[0]]:
+                    results_by_image[det[0]].update({_class: {'tp': 0, 'fp': 0, 'fn': 0, 'tn': 0, 'total_gt': len(gt)}})
+
             max_iou = 0
             for gt_index, _gt in enumerate(gt):
                 '''
@@ -186,8 +217,10 @@ def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3, method
                     gt_box_detected_map[det[0]][max_gt_index] = 1
                 else:
                     fp[det_index] = 1
+                results_by_image[det[0]][_class]['tp'] += 1
             else:
                 fp[det_index] = 1
+                results_by_image[det[0]][_class]['fp'] += 1
                 
         
         accumulated_tp = np.cumsum(tp)
@@ -217,16 +250,11 @@ def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3, method
         
         results_by_class.append(result_by_class)
         
-    return results_by_class, mAP(results_by_class)
+    results_by_image = update_ap_by_image(results_by_image)
+        
+    return {'by_class': results_by_class, 'map': mAP(results_by_class), 
+            'by_image': results_by_image}
 
-
-def get_ap_by_class(detections, ground_truths, classes, iou_threhold=0.3):
-    '''
-        detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
-        ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
-    '''
-    pass
-    
 
 if __name__ == '__main__':
     
