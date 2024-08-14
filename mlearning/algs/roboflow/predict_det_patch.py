@@ -21,16 +21,16 @@ model = YOLO(weights_file)
 # json_dir = None
 # output_dir = '/DeepLearning/_projects/sungjin_body/tests/yolov8_patch_v2/winter/wo_json/학습'
 
-input_dir = '/DeepLearning/_projects/sungjin_body/benchmark/24.08.12'
-json_dir = '/DeepLearning/_projects/sungjin_body/benchmark/24.08.12'
-output_dir = '/DeepLearning/_projects/sungjin_body/benchmark/preds'
+input_dir = '/HDD/datasets/projects/sungjin/body/benchmark/24.08.12'
+json_dir = '/HDD/datasets/projects/sungjin/body/benchmark/24.08.12'
+output_dir = '/HDD/datasets/projects/sungjin/body/benchmark/preds'
 
 compare_gt = True if json_dir is not None else False
 imgsz = 1024
 line_width = 2
 font_scale = 0.5
 conf_threshold = 0.1
-iou_threshold = 0.5
+iou_threshold = 0.3
 _classes = ['STABBED', 'QR', 'CRACK', 'RUST', 'SCRATCH', 'PRESSED', 'BOTTOM']
 _idx2class = {idx: cls for idx, cls in enumerate(_classes)}
 
@@ -40,6 +40,7 @@ if not osp.exists(output_dir):
 img_files = glob.glob(osp.join(input_dir, '*.bmp'))
 
 ### patch params.
+skip_ratio = 0.25
 patch_overlap_ratio = 0.1
 patch_width = imgsz
 patch_height = imgsz
@@ -61,18 +62,22 @@ for img_file in tqdm(img_files):
         for x0 in range(0, img_w, dx):
             num_patches += 1
             if y0 + patch_height > img_h:
-                # skip if too much overlap (> 0.6)
+                if (y0 + patch_height - img_h)/patch_height <= skip_ratio:
+                    continue
                 y = img_h - patch_height
             else:
                 y = y0
 
             if x0 + patch_width > img_w:
+                if (x0 + patch_width - img_w)/patch_width <= skip_ratio:
+                    continue
                 x = img_w - patch_width
             else:
                 x = x0
 
             xmin, xmax, ymin, ymax = x, x + patch_width, y, y + patch_height
-            pred = model(image[ymin:ymax, xmin:xmax, :], save=False, imgsz=imgsz, conf=conf_threshold, verbose=False)[0]
+            pred = model(image[ymin:ymax, xmin:xmax, :], save=False, imgsz=imgsz, 
+                         conf=conf_threshold, iou=iou_threshold, verbose=False)[0]
     
             idx2class = pred.names
             boxes = pred.boxes

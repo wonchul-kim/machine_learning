@@ -237,8 +237,11 @@ def get_performance(detections, ground_truths, classes, iou_threshold=0.3, metho
                 fp[det_index] = 1
                 
             if len(gt_box_detected_map) != 0:
-                results_by_image[det[0]][_class]['fn'] = len(gt_box_detected_map[det[0]]) - np.sum(gt_box_detected_map[det[0]])
-        
+                if isinstance(gt_box_detected_map[det[0]] , int) and gt_box_detected_map[det[0]] != 0:
+                    results_by_image[det[0]][_class]['fn'] = len(gt_box_detected_map[det[0]]) - np.sum(gt_box_detected_map[det[0]])
+                elif isinstance(gt_box_detected_map[det[0]] , np.ndarray):
+                    results_by_image[det[0]][_class]['fn'] = len(gt_box_detected_map[det[0]]) - np.sum(gt_box_detected_map[det[0]])
+                    
         accumulated_tp = np.cumsum(tp)
         accumulated_fp = np.cumsum(fp)
         accumulated_precision = np.divide(accumulated_tp, (accumulated_tp + accumulated_fp))
@@ -265,7 +268,16 @@ def get_performance(detections, ground_truths, classes, iou_threshold=0.3, metho
         }
         
         results_by_class.append(result_by_class)
-        # results_by_image[det[0]][_class]['fn'] = num_gt - np.sum(tp)
+
+
+    for image_name, results in results_by_image.items():
+        for _class in classes:
+            gts = [gt for gt in ground_truths if gt[1] == _class]
+            gt = [gt for gt in gts if gt[0] == image_name]
+
+            if _class not in results:
+                results.update({_class: {'tp': 0, 'fp': 0, 'fn': len(gt), 'tn': 0, 'total_gt': len(gt)}})
+        
 
     results_by_image = update_ap_by_image(results_by_image)
     results_by_class.append({'map': mAP(results_by_class)})

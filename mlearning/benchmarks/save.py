@@ -1,4 +1,4 @@
-def save_df_by_class_to_pdf(performance_by_class, output_filename):
+def save_df_by_class_to_pdf(performance_by_class, output_filename, idx2class=None):
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet
     from reportlab.platypus import SimpleDocTemplate, Paragraph
@@ -21,7 +21,10 @@ def save_df_by_class_to_pdf(performance_by_class, output_filename):
             if isinstance(value, list):
                 value_str = ', '.join(map(str, value))
             else:
-                value_str = str(value)
+                if key == 'class': 
+                    value_str = str(idx2class[value])
+                else:
+                    value_str = str(value)
             content.append(Paragraph(f'{key}: {value_str}', styles['BodyText']))
 
         content.append(Paragraph('<br/><br/>', styles['Normal']))  # 추가적인 여백
@@ -30,7 +33,7 @@ def save_df_by_class_to_pdf(performance_by_class, output_filename):
     document.build(content)
 
 
-def save_pf_by_image_to_excel(performance_by_image, output_filename):
+def save_pf_by_image_to_excel(performance_by_image, output_filename, idx2class=None):
     import pandas as pd
     from openpyxl import load_workbook
     from openpyxl.styles import PatternFill, Border, Side, Alignment
@@ -40,7 +43,7 @@ def save_pf_by_image_to_excel(performance_by_image, output_filename):
 
     for filename, classes in performance_by_image.items():
         for class_id, metrics in classes.items():
-            row = {'filename': filename, 'class': class_id}
+            row = {'filename': filename, 'class': class_id if idx2class is None else idx2class[class_id]}
             row.update(metrics)
             rows.append(row)
 
