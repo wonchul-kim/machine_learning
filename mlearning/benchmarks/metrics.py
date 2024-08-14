@@ -34,25 +34,55 @@ def get_overlap_area(box_1, box_2):
     
     return overlap_area
 
-def get_iou(box_1, box_2, return_dict=False):
+def get_iou(box_1, box_2, shape_type, return_dict=False):
     
-    if not is_overlapped(box_1, box_2):
-        return 0
+    if shape_type == 'rectangle':
+        if not is_overlapped(box_1, box_2):
+            return 0
+        
+        area_1 = get_area(box_1)
+        area_2 = get_area(box_2)
+        
+        overlap_area = get_overlap_area(box_1, box_2)
+        assert overlap_area > 0, RuntimeError(f"ERROR: overlap-area must be more than 0, not {overlap_area}")
+        
+        
+        iou = overlap_area/float(area_1 + area_2 - overlap_area)
+        assert iou >= 0, RuntimeError(f"ERROR: iou must be more than 0, not {iou}")
+        
+        if return_dict:
+            return {'iou': iou, 'area_1': area_1, 'area_2': area_2, 'overlap_area': overlap_area}
+        else:
+            return iou
+    elif shape_type == 'polygon':
+        iou, area_1, area_2, overlap_area = get_polygon_iou(box_1, box_2)
+        
+        if return_dict:
+            return {'iou': iou, 'area_1': area_1, 'area_2': area_2, 'overlap_area': overlap_area}
+        else:
+            return iou        
+
+def ond_dim_points_to_polygon(points):
+    # points를 (x, y) 형식의 튜플 리스트로 변환
+    return [(points[i], points[i + 1]) for i in range(0, len(points), 2)]
+
+
+def get_polygon_iou(point1, point2):
+    from shapely.geometry import Polygon
+    # 두 다각형을 Polygon 객체로 변환
+    poly1 = Polygon(ond_dim_points_to_polygon(point1))
+    poly2 = Polygon(ond_dim_points_to_polygon(point2))
     
-    area_1 = get_area(box_1)
-    area_2 = get_area(box_2)
+    # 교집합 영역 계산
+    intersection_area = poly1.intersection(poly2).area
     
-    overlap_area = get_overlap_area(box_1, box_2)
-    assert overlap_area > 0, RuntimeError(f"ERROR: overlap-area must be more than 0, not {overlap_area}")
+    # 합집합 영역 계산
+    union_area = poly1.union(poly2).area
     
+    # IoU 계산
+    iou = intersection_area / union_area
     
-    iou = overlap_area/float(area_1 + area_2 - overlap_area)
-    assert iou >= 0, RuntimeError(f"ERROR: iou must be more than 0, not {iou}")
-    
-    if return_dict:
-        return {'iou': iou, 'area_1': area_1, 'area_2': area_2, 'overlap_area': overlap_area}
-    else:
-        return iou
+    return iou, poly1.area,poly2.area, intersection_area
     
 def ElevenPointInterpolatedAP(rec, prec):
     mrec = [e for e in rec]
@@ -167,7 +197,7 @@ def calculateAveragePrecision(rec, prec):
     
     return [ap, mpre[0:len(mpre)-1], mrec[0:len(mpre)-1], ii]
 
-def get_performance(detections, ground_truths, classes, iou_threshold=0.3, method='ap'):
+def get_performance(detections, ground_truths, classes, iou_threshold=0.3, method='ap', shape_type='rectangle'):
     '''
         detections: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
         ground_truths: ['image filename', class-index, confidence, (x1, y1, x2, y2)]
@@ -209,7 +239,7 @@ def get_performance(detections, ground_truths, classes, iou_threshold=0.3, metho
                     Within the same image, compare all gt-boxes for each det-box and then, calculate iou.
                     match the det-box and gt-box by the maximum iou.
                 '''
-                iou = get_iou(det[3], _gt[3])
+                iou = get_iou(det[3], _gt[3], shape_type)
                 if iou > max_iou:
                     max_iou = iou 
                     max_gt_index = gt_index

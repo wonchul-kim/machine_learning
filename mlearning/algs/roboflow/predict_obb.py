@@ -77,23 +77,12 @@ def predict_obb(weights_file, imgsz, _classes, input_dir, output_dir, json_dir, 
         df_compare_pixel.to_csv(osp.join(output_dir, 'diff_iou.csv'))
         
 if __name__ == '__main__':
-    weights_file = "/DeepLearning/_projects/kt_g/wonchul/240805/obb/train4/weights/best.pt"
+    weights_file = "/HDD/etc/obb/weights/best.pt"
 
-    # input_dir = '/DeepLearning/_projects/kt_g/24.07.25/test'
-    # json_dir = None
-    # output_dir = '/DeepLearning/_projects/kt_g/wonchul/240805/test/obb_seen'
-    # compare_gt = False
-
-    # input_dir = '/Data/01.Image/kt&g/24.07.26/unseen_img'
-    # json_dir = None
-    # output_dir = '/DeepLearning/_projects/kt_g/wonchul/240805/test/obb_unseen'
-    # compare_gt = False
-
-    # input_dir = '/nas2/kt/240807_LA_IMG/one_class'
-    input_dir = '/nas2/kt/240807_LA_IMG/124071716123338'
-    json_dir = None
+    input_dir = '/HDD/etc/obb/images'
+    json_dir = '/HDD/etc/obb/images'
     # output_dir = '/nas2/kt/240807_LA_IMG/one_class_prediction'
-    output_dir = '/nas2/kt/240807_LA_IMG/124071716123338_prediction'
+    output_dir = '/HDD/etc/obb/outputs'
     compare_gt = False
 
     iou_threshold = 0.2

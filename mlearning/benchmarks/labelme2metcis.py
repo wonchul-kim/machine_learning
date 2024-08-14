@@ -26,7 +26,7 @@ def labelme2metrics(input_dir, return_class2idx=True):
                     class2idx[label] = len(class2idx)
                 
                 if shape_type == 'rectangle':
-                    assert len(points) == 2 and len(points[0]) == 2, ValueError(f"ERROR: points are wrong: {points} at {json_file}")
+                    assert len(points) == 2 and len(points[0]) == 2, ValueError(f"ERROR: the number of points must be 2, not {len(points)}: {points} at {json_file}")
                     
                     gt = [filename, class2idx[label], 1, (min(points[0][0], points[1][0]),
                                                           min(points[0][1], points[1][1]), 
@@ -34,6 +34,13 @@ def labelme2metrics(input_dir, return_class2idx=True):
                                                           max(points[0][1], points[1][1]))
                         ]
                     gts.append(gt)          
+                elif shape_type == 'polygon':
+                    assert len(points) >=3, ValueError(f"ERROR: the number of points must be more than 3, not {len(points)}: {points} at {json_file}")
+                    
+                    gt = [filename, class2idx[label], 1, tuple([_point for __point in points for _point in __point])]
+                    gts.append(gt)
+                else:
+                    NotImplementedError(f"ERROR: NOT Consider {shape_type} shape-type at {json_file}")
                     
         if len(gts) != num_labelme_label:
             warnings.warn(f"The number of lableme label({num_labelme_label}) is not same to the number of metrics label({len(gts)})")    
